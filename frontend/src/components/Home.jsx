@@ -450,7 +450,7 @@ const styles = {
     backgroundColor: '#ffffff'
   },
   heroTitle: {
-    fontSize: '2.4rem',
+    fontSize: '2.8rem',
     fontWeight: '800',
     color: '#1a1a1a',
     margin: '0 0 12px 0',
@@ -458,7 +458,7 @@ const styles = {
     fontStyle: 'italic'
   },
   heroSubtitle: {
-    fontSize: '1.1rem',
+    fontSize: '1.3rem',
     color: '#555',
     margin: '0 0 28px 0',
     fontWeight: '500'
@@ -482,7 +482,7 @@ const styles = {
   searchInput: {
     flex: 1,
     padding: '14px 0',
-    fontSize: '15px',
+    fontSize: '16px',
     border: 'none',
     outline: 'none',
     backgroundColor: 'transparent',
@@ -504,7 +504,7 @@ const styles = {
     minHeight: 'calc(100vh - 180px)'
   },
   sidebarTitle: {
-    fontSize: '16px',
+    fontSize: '19px',
     fontWeight: '600',
     margin: '0 0 24px 0',
     color: '#1a1a1a'
@@ -513,7 +513,7 @@ const styles = {
     marginBottom: '28px'
   },
   filterLabel: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '600',
     color: '#333',
     margin: '0 0 14px 0'
@@ -523,7 +523,7 @@ const styles = {
     alignItems: 'center',
     gap: '10px',
     marginBottom: '12px',
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#555',
     cursor: 'pointer'
   },
@@ -539,7 +539,7 @@ const styles = {
     cursor: 'pointer'
   },
   ratingValue: {
-    fontSize: '13px',
+    fontSize: '15px',
     color: '#666',
     marginTop: '10px'
   },
@@ -567,7 +567,7 @@ const styles = {
     backgroundColor: '#fff',
     border: '1px solid #ddd',
     borderRadius: '25px',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '500',
     cursor: 'pointer',
     color: '#555',
@@ -584,12 +584,12 @@ const styles = {
     gap: '10px'
   },
   sortLabel: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#666'
   },
   sortSelect: {
     padding: '10px 16px',
-    fontSize: '14px',
+    fontSize: '16px',
     border: '1px solid #ddd',
     borderRadius: '8px',
     backgroundColor: '#fff',
@@ -640,19 +640,19 @@ const styles = {
   },
   restaurantName: {
     margin: '0 0 4px 0',
-    fontSize: '16px',
+    fontSize: '19px',
     fontWeight: '600',
     color: '#1a1a1a'
   },
   cuisineText: {
     margin: '0 0 6px 0',
-    fontSize: '13px',
+    fontSize: '15px',
     color: '#888'
   },
   ratingDelivery: {
     display: 'flex',
     alignItems: 'center',
-    fontSize: '13px'
+    fontSize: '15px'
   },
   rating: {
     color: '#666',
@@ -710,22 +710,22 @@ const styles = {
     gap: '4px'
   },
   platformName: {
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: '600',
     color: '#333'
   },
   price: {
-    fontSize: '18px',
+    fontSize: '22px',
     fontWeight: '700',
     color: '#1a1a1a'
   },
   zomatoOffer: {
-    fontSize: '11px',
+    fontSize: '13px',
     fontWeight: '600',
     color: '#dc2626'
   },
   swiggyOfferBadge: {
-    fontSize: '10px',
+    fontSize: '12px',
     fontWeight: '600',
     backgroundColor: '#22c55e',
     color: '#fff',
@@ -734,7 +734,7 @@ const styles = {
     alignSelf: 'flex-start'
   },
   noOffer: {
-    fontSize: '11px',
+    fontSize: '13px',
     color: '#ef4444'
   },
   noResults: {

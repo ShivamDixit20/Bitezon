@@ -503,13 +503,14 @@ const styles = {
   },
   platformName: {
     margin: 0,
-    fontSize: '18px',
+    fontSize: '20px',
     fontWeight: '600',
   },
   emptyPlatformCart: {
     padding: '40px 20px',
     textAlign: 'center',
     color: '#999',
+    fontSize: '16px',
   },
   restaurantInfo: {
     display: 'flex',
@@ -517,7 +518,7 @@ const styles = {
     gap: '8px',
     padding: '12px 20px',
     background: '#f0f7ff',
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#2c3e50',
   },
   itemsList: {
@@ -537,10 +538,11 @@ const styles = {
     display: 'block',
     fontWeight: '500',
     marginBottom: '4px',
+    fontSize: '16px',
   },
   itemOffer: {
     display: 'inline-block',
-    fontSize: '11px',
+    fontSize: '12px',
     background: '#e8f5e9',
     color: '#2e7d32',
     padding: '2px 6px',
@@ -553,12 +555,12 @@ const styles = {
     alignItems: 'center',
   },
   originalPrice: {
-    fontSize: '13px',
+    fontSize: '15px',
     color: '#999',
     textDecoration: 'line-through',
   },
   effectivePrice: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '600',
     color: '#2e7d32',
   },
@@ -583,12 +585,13 @@ const styles = {
     minWidth: '20px',
     textAlign: 'center',
     fontWeight: '600',
+    fontSize: '16px',
   },
   removeButton: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '18px',
     padding: '4px',
     marginLeft: '8px',
   },
@@ -601,14 +604,14 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '8px',
-    fontSize: '14px',
+    fontSize: '16px',
   },
   savingsRow: {
     color: '#2e7d32',
   },
   totalRow: {
     fontWeight: '700',
-    fontSize: '16px',
+    fontSize: '18px',
     paddingTop: '8px',
     borderTop: '1px solid #ddd',
     marginTop: '8px',
@@ -626,7 +629,8 @@ const styles = {
     borderRadius: '8px',
     background: 'white',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '16px',
+    fontWeight: '500',
   },
   checkoutButton: {
     flex: 2,
@@ -635,7 +639,7 @@ const styles = {
     borderRadius: '8px',
     color: 'white',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '600',
   },
   swiggyCheckout: {

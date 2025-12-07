@@ -521,12 +521,13 @@ function CompareDeals({ onCartUpdate }) {
         .compare-deals h1 {
           text-align: center;
           color: #2c3e50;
-          font-size: 2rem;
+          font-size: 2.4rem;
         }
         .subtitle {
           text-align: center;
           color: #666;
           margin-bottom: 20px;
+          font-size: 1.2rem;
         }
         .error-box {
           background: #fee;
@@ -572,10 +573,12 @@ function CompareDeals({ onCartUpdate }) {
           color: #2c3e50;
           border-bottom: 3px solid #3498db;
           padding-bottom: 10px;
+          font-size: 1.8rem;
         }
         .compare-section p {
           color: #666;
           margin-bottom: 15px;
+          font-size: 1.1rem;
         }
         .filter-row {
           display: flex;
@@ -589,7 +592,7 @@ function CompareDeals({ onCartUpdate }) {
           border-radius: 8px;
           flex: 1;
           min-width: 200px;
-          font-size: 14px;
+          font-size: 16px;
         }
         button {
           background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
@@ -599,7 +602,7 @@ function CompareDeals({ onCartUpdate }) {
           border-radius: 8px;
           cursor: pointer;
           font-weight: bold;
-          font-size: 14px;
+          font-size: '16px';
           transition: transform 0.2s;
         }
         button:hover:not(:disabled) {
@@ -667,11 +670,13 @@ function CompareDeals({ onCartUpdate }) {
           padding: 12px;
           text-align: left;
           border-bottom: 1px solid #eee;
+          font-size: 15px;
         }
         th {
           background: #f8f9fa;
           font-weight: 600;
           color: #2c3e50;
+          font-size: 16px;
         }
         tr:hover {
           background: #f8f9fa;
@@ -862,11 +867,11 @@ function CompareDeals({ onCartUpdate }) {
         }
         .result-name {
           font-weight: 600;
-          font-size: 1.1rem;
+          font-size: 1.3rem;
         }
         .result-restaurant {
           color: #666;
-          font-size: 0.9rem;
+          font-size: 1.05rem;
         }
         .result-comparison {
           display: flex;
@@ -890,12 +895,12 @@ function CompareDeals({ onCartUpdate }) {
           margin-bottom: 5px;
         }
         .result-price {
-          font-size: 1.5rem;
+          font-size: 1.8rem;
           font-weight: bold;
           color: #2c3e50;
         }
         .result-offer {
-          font-size: 0.8rem;
+          font-size: 0.95rem;
           color: #666;
           margin-top: 5px;
         }
@@ -931,7 +936,7 @@ function CompareDeals({ onCartUpdate }) {
           border-radius: 6px;
           border: none;
           cursor: pointer;
-          font-size: 14px;
+          font-size: 15px;
           transition: all 0.2s;
           display: flex;
           align-items: center;

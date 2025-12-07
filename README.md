@@ -1,3 +1,5 @@
+hosted link: https://bitezon.vercel.app/
+
 Bitezon – Full-Stack Food Deal Comparison Platform
 
 1. Project Title
@@ -23,4 +25,4 @@ Hosting
 Vercel (Frontend), Render/Railway (Backend),
 MongoDB Atlas
 Cloud deployment for scalability and
-accessibility
+accessibility.

@@ -260,11 +260,11 @@ const styles = {
     gap: '8px'
   },
   navButton: {
-    padding: '10px 18px',
+    padding: '12px 20px',
     border: 'none',
     borderRadius: '8px',
     backgroundColor: 'transparent',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '500',
     cursor: 'pointer',
     color: '#555',
@@ -295,16 +295,16 @@ const styles = {
     gap: '12px'
   },
   welcome: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#333',
     fontWeight: '500'
   },
   logoutBtn: {
-    padding: '8px 16px',
+    padding: '10px 18px',
     backgroundColor: '#f5f5f5',
     border: '1px solid #ddd',
     borderRadius: '6px',
-    fontSize: '13px',
+    fontSize: '15px',
     cursor: 'pointer'
   },
   main: {
