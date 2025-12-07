@@ -46,5 +46,7 @@ router.get('/orders/:orderId', zomatoController.getOrderById);
 
 // PATCH /api/zomato/orders/:orderId/status - Update order status
 router.patch('/orders/:orderId/status', zomatoController.updateOrderStatus);
+// POST /api/zomato/orders/:orderId/cancel - Cancel an order
+router.post('/orders/:orderId/cancel', zomatoController.cancelOrder);
 
 module.exports = router;

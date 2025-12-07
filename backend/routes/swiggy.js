@@ -44,6 +44,8 @@ router.get('/orders/:orderId', swiggyController.getOrderById);
 
 // PATCH /api/swiggy/orders/:orderId/status - Update order status
 router.patch('/orders/:orderId/status', swiggyController.updateOrderStatus);
+// POST /api/swiggy/orders/:orderId/cancel - Cancel an order
+router.post('/orders/:orderId/cancel', swiggyController.cancelOrder);
 
 module.exports = router;
 

@@ -524,6 +524,35 @@ exports.updateOrderStatus = (req, res) => {
 };
 
 /**
+ * Cancel order by ID (convenience endpoint)
+ */
+exports.cancelOrder = (req, res) => {
+  try {
+    const orderIndex = orders.findIndex(o => o.id === req.params.orderId);
+
+    if (orderIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const currentStatus = orders[orderIndex].status;
+    if (currentStatus === 'delivered') {
+      return res.status(400).json({ success: false, message: 'Cannot cancel a delivered order' });
+    }
+
+    if (currentStatus === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Order is already cancelled' });
+    }
+
+    orders[orderIndex].status = 'cancelled';
+    orders[orderIndex].updatedAt = new Date().toISOString();
+
+    res.json({ success: true, message: 'Order cancelled', data: orders[orderIndex] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error cancelling order', error: error.message });
+  }
+};
+
+/**
  * Get promoted restaurants (featured)
  */
 exports.getPromotedRestaurants = (req, res) => {
