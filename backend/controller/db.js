@@ -3,11 +3,6 @@
  * MongoDB connection using Mongoose
  */
 
-/**
- * Database Connection
- * MongoDB connection using Mongoose
- */
-
 const mongoose = require('mongoose');
 
 const connectDB = async () => {

@@ -6,7 +6,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const config = require('../config');
+const config = require('../controller');
 
 const router = express.Router();
 
@@ -152,6 +152,79 @@ router.post('/login', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error logging in',
+      error: config.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * PUT /api/auth/update-profile
+ * Update user profile (name)
+ */
+router.put('/update-profile', async (req, res) => {
+  try {
+    // Get token from header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, config.JWT_SECRET);
+      console.log('Token decoded successfully:', decoded);
+    } catch (err) {
+      console.error('JWT verification error:', err.message);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token. Please login again.'
+      });
+    }
+
+    const { name } = req.body;
+
+    // Validate input
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name must be at least 2 characters long'
+      });
+    }
+
+    // Find and update user
+    const user = await User.findByIdAndUpdate(
+      decoded.id,
+      { name: name.trim() },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating profile',
       error: config.NODE_ENV === 'development' ? error.message : undefined
     });
   }

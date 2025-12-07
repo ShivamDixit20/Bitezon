@@ -1,15 +1,21 @@
+const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
+
+// Load environment variables FIRST - use absolute path
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const config = require('./config');
+const connectDB = require('./controller/db');
+const config = require('./controller');
 const authRoutes = require('./routes/auth');
+const swiggyRoutes = require('./routes/swiggy');
+const zomatoRoutes = require('./routes/zomato');
+const compareRoutes = require('./routes/compare');
+const cartRoutes = require('./routes/cart');
 const authMiddleware = require('./middleware/auth');
 const User = require('./models/user');
-
-// Load environment variables
-dotenv.config();
 
 // Connect to MongoDB
 connectDB();
@@ -25,18 +31,57 @@ app.use(bodyParser.json());
 // Routes
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'API Server',
+    message: 'Bitezon API Server',
     version: '1.0.0',
     endpoints: {
-      register: 'POST /api/auth/register',
-      login: 'POST /api/auth/login',
-      profile: 'GET /api/profile (protected)'
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+        profile: 'GET /api/profile (protected)'
+      },
+      swiggy: {
+        restaurants: 'GET /api/swiggy/restaurants (filters: city, isVeg, minRating, cuisine)',
+        restaurantById: 'GET /api/swiggy/restaurants/:id',
+        menu: 'GET /api/swiggy/menu/:restaurantId (filters: category, isVeg, maxPrice)',
+        allMenuItems: 'GET /api/swiggy/menu (filters: isVeg, category, minPrice, maxPrice)',
+        search: 'GET /api/swiggy/search?q=query',
+        filters: 'GET /api/swiggy/filters',
+        createOrder: 'POST /api/swiggy/orders',
+        getOrders: 'GET /api/swiggy/orders',
+        getOrder: 'GET /api/swiggy/orders/:orderId',
+        updateOrderStatus: 'PATCH /api/swiggy/orders/:orderId/status'
+      },
+      zomato: {
+        restaurants: 'GET /api/zomato/restaurants (filters: city, isVeg, minRating, cuisine, maxCost, promoted, sortBy)',
+        promotedRestaurants: 'GET /api/zomato/restaurants/promoted',
+        restaurantById: 'GET /api/zomato/restaurants/:id',
+        menu: 'GET /api/zomato/menu/:restaurantId (filters: category, isVeg, maxPrice, sortBy)',
+        allMenuItems: 'GET /api/zomato/menu (filters: isVeg, category, minPrice, maxPrice)',
+        search: 'GET /api/zomato/search?q=query',
+        filters: 'GET /api/zomato/filters',
+        createOrder: 'POST /api/zomato/orders',
+        getOrders: 'GET /api/zomato/orders',
+        getOrder: 'GET /api/zomato/orders/:orderId',
+        updateOrderStatus: 'PATCH /api/zomato/orders/:orderId/status'
+      }
     }
   });
 });
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+
+// Swiggy API routes
+app.use('/api/swiggy', swiggyRoutes);
+
+// Zomato API routes
+app.use('/api/zomato', zomatoRoutes);
+
+// Compare API routes
+app.use('/api/compare', compareRoutes);
+
+// Cart API routes
+app.use('/api/cart', cartRoutes);
 
 // Protected route - requires valid JWT token
 app.get('/api/profile', authMiddleware, async (req, res) => {
@@ -94,3 +139,5 @@ app.listen(PORT, () => {
   console.log(`Environment: ${config.NODE_ENV}`);
   console.log(`JWT expiry: ${config.JWT_EXPIRY}`);
 });
+
+
