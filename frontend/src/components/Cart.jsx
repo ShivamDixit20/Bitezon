@@ -78,9 +78,62 @@ const Cart = ({ onCheckout }) => {
     }
   };
 
+  // Save order to history
+  const saveOrderToHistory = async (platform) => {
+    try {
+      const platformCart = cart?.[platform];
+      const totals = cart?.totals?.[platform];
+      
+      if (!platformCart || !platformCart.items || platformCart.items.length === 0) {
+        console.error('No cart data to save');
+        return false;
+      }
+
+      const orderData = {
+        platform,
+        restaurantId: platformCart.restaurantId,
+        restaurantName: platformCart.restaurantName,
+        items: platformCart.items.map(item => ({
+          itemId: item.itemId || 'unknown',
+          itemName: item.itemName,
+          quantity: item.quantity || 1,
+          originalPrice: item.originalPrice || 0,
+          effectivePrice: item.effectivePrice !== undefined ? item.effectivePrice : item.originalPrice,
+          offer: item.offer || null
+        })),
+        totals: {
+          totalItems: totals?.totalItems || platformCart.items.reduce((sum, i) => sum + (i.quantity || 1), 0),
+          originalTotal: totals?.originalTotal || platformCart.items.reduce((sum, i) => sum + ((i.originalPrice || 0) * (i.quantity || 1)), 0),
+          discountedTotal: totals?.subtotal || platformCart.items.reduce((sum, i) => sum + ((i.effectivePrice !== undefined ? i.effectivePrice : i.originalPrice || 0) * (i.quantity || 1)), 0),
+          totalSavings: totals?.savings || 0
+        },
+        paymentMethod: 'Via ' + (platform === 'swiggy' ? 'Swiggy' : 'Zomato') + ' App'
+      };
+
+      console.log('Saving order to history:', orderData);
+
+      const response = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      
+      const result = await response.json();
+      console.log('Order saved:', result);
+      return result.success;
+    } catch (err) {
+      console.error('Failed to save order to history:', err);
+      return false;
+    }
+  };
+
   const handleCheckout = async (platform) => {
     try {
       setCheckoutLoading(platform);
+      
+      // Save order to history FIRST (before checkout clears anything)
+      await saveOrderToHistory(platform);
+      
       const response = await fetch(`${API_BASE}/cart/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

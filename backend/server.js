@@ -14,6 +14,7 @@ const swiggyRoutes = require('./routes/swiggy');
 const zomatoRoutes = require('./routes/zomato');
 const compareRoutes = require('./routes/compare');
 const cartRoutes = require('./routes/cart');
+const orderHistoryRoutes = require('./routes/orderHistory');
 const authMiddleware = require('./middleware/auth');
 const User = require('./models/user');
 
@@ -27,6 +28,9 @@ app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// Serve static files from public folder (images, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.get('/', (req, res) => {
@@ -82,6 +86,9 @@ app.use('/api/compare', compareRoutes);
 
 // Cart API routes
 app.use('/api/cart', cartRoutes);
+
+// Order History API routes
+app.use('/api/orders', orderHistoryRoutes);
 
 // Protected route - requires valid JWT token
 app.get('/api/profile', authMiddleware, async (req, res) => {

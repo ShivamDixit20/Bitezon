@@ -10,20 +10,18 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8f9fa;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
 .app {
   width: 100%;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
 }
 
 .container {
@@ -297,6 +295,30 @@ input:focus {
   flex-direction: column;
 }
 
+/* Responsive styles */
+@media (max-width: 768px) {
+  .auth-card {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .auth-left {
+    padding: 2rem 1.5rem;
+  }
+
+  .auth-right {
+    padding: 2rem 1.5rem;
+  }
+
+  .brand h1 {
+    font-size: 1.8rem;
+  }
+
+  .brand p {
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-width: 480px) {
   .app-title {
     font-size: 2rem;
@@ -309,5 +331,82 @@ input:focus {
 
   h2 {
     font-size: 1.5rem;
+  }
+
+  .auth-card {
+    border-radius: 8px;
+  }
+
+  .auth-left {
+    padding: 1.5rem;
+  }
+
+  .auth-right {
+    padding: 1.5rem;
+  }
+
+  input {
+    padding: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Main App Header Responsive */
+@media (max-width: 900px) {
+  .main-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px !important;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    overflow-x: auto;
+    padding: 8px 0;
+    gap: 4px !important;
+  }
+
+  .nav-button {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .header-right .welcome {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-header {
+    padding: 8px 12px !important;
+  }
+
+  .header-left .header-title {
+    font-size: 18px !important;
+  }
+
+  .header-left .header-logo {
+    font-size: 22px !important;
+  }
+
+  .main-nav {
+    gap: 2px !important;
+  }
+
+  .nav-button {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .logout-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
   }
 }

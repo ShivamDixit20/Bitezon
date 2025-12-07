@@ -30,10 +30,66 @@ const Checkout = ({ platform, onBack, onComplete }) => {
     }
   };
 
+  const saveOrderToHistory = async () => {
+    try {
+      const platformCart = cart?.[platform];
+      const totals = cart?.totals?.[platform];
+      
+      console.log('Cart data:', cart);
+      console.log('Platform cart:', platformCart);
+      console.log('Totals:', totals);
+      
+      if (!platformCart || !platformCart.items || platformCart.items.length === 0) {
+        console.error('No cart data to save - cart is empty or missing');
+        return false;
+      }
+
+      const orderData = {
+        platform,
+        restaurantId: platformCart.restaurantId,
+        restaurantName: platformCart.restaurantName,
+        items: platformCart.items.map(item => ({
+          itemId: item.itemId || 'unknown',
+          itemName: item.itemName,
+          quantity: item.quantity || 1,
+          originalPrice: item.originalPrice || 0,
+          effectivePrice: item.effectivePrice !== undefined ? item.effectivePrice : item.originalPrice,
+          offer: item.offer || null
+        })),
+        totals: {
+          totalItems: totals?.totalItems || platformCart.items.reduce((sum, i) => sum + (i.quantity || 1), 0),
+          originalTotal: totals?.originalTotal || platformCart.items.reduce((sum, i) => sum + ((i.originalPrice || 0) * (i.quantity || 1)), 0),
+          discountedTotal: totals?.subtotal || totals?.discountedTotal || platformCart.items.reduce((sum, i) => sum + ((i.effectivePrice !== undefined ? i.effectivePrice : i.originalPrice || 0) * (i.quantity || 1)), 0),
+          totalSavings: totals?.savings || totals?.totalSavings || 0
+        },
+        paymentMethod: 'Via ' + (platform === 'swiggy' ? 'Swiggy' : 'Zomato') + ' App'
+      };
+
+      console.log('Saving order data:', JSON.stringify(orderData, null, 2));
+
+      const response = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      
+      const result = await response.json();
+      console.log('Order save result:', result);
+      return result.success;
+    } catch (err) {
+      console.error('Failed to save order to history:', err);
+      return false;
+    }
+  };
+
   const handleCheckout = async () => {
     try {
       setCheckingOut(true);
       setError(null);
+      
+      // Save order to history FIRST (before checkout clears anything)
+      const orderSaved = await saveOrderToHistory();
+      console.log('Order saved status:', orderSaved);
       
       const response = await fetch(`${API_BASE}/cart/checkout`, {
         method: 'POST',
@@ -238,89 +294,95 @@ const Checkout = ({ platform, onBack, onComplete }) => {
 
 const styles = {
   container: {
-    maxWidth: '500px',
+    width: '100%',
+    maxWidth: '800px',
     margin: '0 auto',
     padding: '20px',
+    minHeight: 'calc(100vh - 80px)',
   },
   backButton: {
     background: 'none',
     border: '1px solid #ddd',
-    padding: '8px 16px',
-    borderRadius: '5px',
+    padding: '10px 20px',
+    borderRadius: '8px',
     cursor: 'pointer',
     marginBottom: '20px',
     color: '#666',
+    fontSize: '15px',
+    transition: 'all 0.2s',
   },
   checkoutCard: {
     background: 'white',
-    borderRadius: '12px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+    borderRadius: '16px',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
     overflow: 'hidden',
   },
   header: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    padding: '20px',
+    padding: '24px',
     background: '#f8f9fa',
     borderBottom: '1px solid #eee',
   },
   platformIcon: {
-    fontSize: '32px',
+    fontSize: '36px',
   },
   title: {
     margin: 0,
-    fontSize: '22px',
+    fontSize: '24px',
   },
   error: {
     background: '#fee',
     color: '#c00',
-    padding: '12px 20px',
-    margin: '15px 20px 0',
-    borderRadius: '8px',
+    padding: '14px 24px',
+    margin: '15px 24px 0',
+    borderRadius: '10px',
+    fontSize: '15px',
   },
   restaurantSection: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    padding: '15px 20px',
+    gap: '14px',
+    padding: '18px 24px',
     background: '#f0f7ff',
     borderBottom: '1px solid #eee',
   },
   restaurantIcon: {
-    fontSize: '24px',
+    fontSize: '28px',
   },
   restaurantName: {
     fontWeight: '600',
-    fontSize: '16px',
+    fontSize: '18px',
   },
   itemCount: {
     color: '#666',
-    fontSize: '13px',
+    fontSize: '14px',
   },
   itemsSection: {
-    padding: '15px 20px',
+    padding: '20px 24px',
     borderBottom: '1px solid #eee',
   },
   sectionTitle: {
-    margin: '0 0 15px 0',
-    fontSize: '16px',
+    margin: '0 0 18px 0',
+    fontSize: '18px',
     color: '#2c3e50',
   },
   orderItem: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '10px 0',
+    padding: '12px 0',
     borderBottom: '1px dashed #eee',
   },
   itemInfo: {
     display: 'flex',
-    gap: '10px',
+    gap: '12px',
     alignItems: 'center',
   },
   itemName: {
     fontWeight: '500',
+    fontSize: '15px',
   },
   itemQty: {
     color: '#666',
@@ -328,121 +390,126 @@ const styles = {
   },
   itemPrice: {
     display: 'flex',
-    gap: '8px',
+    gap: '10px',
     alignItems: 'center',
   },
   originalPrice: {
     color: '#999',
     textDecoration: 'line-through',
-    fontSize: '13px',
+    fontSize: '14px',
   },
   finalPrice: {
     fontWeight: '600',
     color: '#2e7d32',
+    fontSize: '16px',
   },
   billSection: {
-    padding: '15px 20px',
+    padding: '20px 24px',
     background: '#f8f9fa',
   },
   billRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '8px 0',
-    fontSize: '14px',
+    padding: '10px 0',
+    fontSize: '15px',
   },
   savingsRow: {
     color: '#2e7d32',
+    fontWeight: '500',
   },
   billDivider: {
     height: '1px',
     background: '#ddd',
-    margin: '10px 0',
+    margin: '12px 0',
   },
   totalRow: {
     fontWeight: '700',
-    fontSize: '18px',
+    fontSize: '20px',
     color: '#2c3e50',
   },
   actions: {
-    padding: '20px',
+    padding: '24px',
   },
   paymentNote: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    padding: '12px',
+    gap: '10px',
+    padding: '14px',
     background: '#fff3cd',
-    borderRadius: '8px',
-    marginBottom: '15px',
-    fontSize: '14px',
+    borderRadius: '10px',
+    marginBottom: '18px',
+    fontSize: '15px',
   },
   checkoutButton: {
     width: '100%',
-    padding: '16px',
+    padding: '18px',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: '12px',
     color: 'white',
-    fontSize: '16px',
+    fontSize: '17px',
     fontWeight: '600',
     cursor: 'pointer',
+    transition: 'transform 0.2s, box-shadow 0.2s',
   },
   redirectSection: {
-    padding: '20px',
+    padding: '24px',
     textAlign: 'center',
   },
   successIcon: {
-    fontSize: '48px',
-    marginBottom: '10px',
+    fontSize: '56px',
+    marginBottom: '12px',
   },
   orderDetails: {
     background: '#f8f9fa',
-    borderRadius: '8px',
-    padding: '15px',
-    margin: '20px 0',
+    borderRadius: '10px',
+    padding: '18px',
+    margin: '24px 0',
     textAlign: 'left',
   },
   orderRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '6px 0',
-    fontSize: '14px',
+    padding: '8px 0',
+    fontSize: '15px',
   },
   orderTotal: {
     fontWeight: '700',
-    fontSize: '16px',
+    fontSize: '18px',
     borderTop: '1px solid #ddd',
-    marginTop: '8px',
-    paddingTop: '12px',
+    marginTop: '10px',
+    paddingTop: '14px',
   },
   redirectButton: {
     width: '100%',
-    padding: '16px',
+    padding: '18px',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: '12px',
     color: 'white',
-    fontSize: '16px',
+    fontSize: '17px',
     fontWeight: '600',
     cursor: 'pointer',
-    marginBottom: '15px',
+    marginBottom: '18px',
+    transition: 'transform 0.2s, box-shadow 0.2s',
   },
   alternateLinks: {
-    fontSize: '14px',
+    fontSize: '15px',
   },
   loading: {
     textAlign: 'center',
-    padding: '40px',
+    padding: '60px',
     color: '#666',
+    fontSize: '18px',
   },
   emptyCheckout: {
     textAlign: 'center',
-    padding: '40px',
+    padding: '60px',
   },
   howItWorks: {
-    marginTop: '20px',
-    padding: '20px',
+    marginTop: '24px',
+    padding: '24px',
     background: '#e3f2fd',
-    borderRadius: '10px',
-    fontSize: '14px',
+    borderRadius: '12px',
+    fontSize: '15px',
   },
 };
 

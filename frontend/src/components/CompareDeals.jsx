@@ -300,6 +300,16 @@ function CompareDeals({ onCartUpdate }) {
             <option value="2">2 - Pizza Hub</option>
             <option value="3">3 - South Spice</option>
             <option value="4">4 - Burger Street</option>
+            <option value="5">5 - Sushi Central</option>
+            <option value="6">6 - Green Leaf Salads</option>
+            <option value="7">7 - Taco Town</option>
+            <option value="8">8 - Pasta Pavilion</option>
+            <option value="9">9 - BBQ Barn</option>
+            <option value="10">10 - The Vegan Bowl</option>
+            <option value="11">11 - Noodle Nook</option>
+            <option value="12">12 - Wrap & Roll</option>
+            <option value="13">13 - Dessert Dreams</option>
+            <option value="14">14 - Kebab Corner</option>
           </select>
           <button onClick={fetchRestaurantComparison} disabled={loading === 'restaurant'}>
             {loading === 'restaurant' ? 'Comparing...' : 'Compare Restaurant'}
