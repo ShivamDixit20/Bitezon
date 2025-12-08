@@ -1,20 +1,18 @@
 /**
  * Order History Controller
- * Stores and retrieves order history for users
+ * Stores and retrieves order history for users in MongoDB
  */
 
 const { nanoid } = require('nanoid');
-
-// In-memory order history storage
-// In production, this would be stored in a database
-const orderHistory = [];
+const Order = require('../models/Order');
 
 /**
- * Save a new order to history
+ * Save a new order to MongoDB
  */
-const saveOrder = (req, res) => {
+const saveOrder = async (req, res) => {
   try {
     const {
+      userId,
       platform,
       restaurantId,
       restaurantName,
@@ -24,6 +22,13 @@ const saveOrder = (req, res) => {
     } = req.body;
 
     // Validate required fields
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
     if (!platform || !restaurantName || !items || items.length === 0) {
       return res.status(400).json({
         success: false,
@@ -31,8 +36,20 @@ const saveOrder = (req, res) => {
       });
     }
 
-    const order = {
+    // Calculate totals if not provided
+    const calculatedTotals = totals || {
+      totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
+      originalTotal: items.reduce((sum, i) => sum + (i.originalPrice * i.quantity), 0),
+      discountedTotal: items.reduce((sum, i) => sum + (i.effectivePrice * i.quantity), 0),
+      totalSavings: items.reduce((sum, i) => sum + ((i.originalPrice - i.effectivePrice) * i.quantity), 0)
+    };
+
+    const estimatedDelivery = new Date();
+    estimatedDelivery.setMinutes(estimatedDelivery.getMinutes() + 35); // 35 mins from now
+
+    const order = new Order({
       orderId: nanoid(12),
+      userId,
       platform,
       restaurantId,
       restaurantName,
@@ -42,61 +59,66 @@ const saveOrder = (req, res) => {
         quantity: item.quantity,
         originalPrice: item.originalPrice,
         effectivePrice: item.effectivePrice,
-        offer: item.offer
+        offer: item.offer || null
       })),
-      totals: {
-        totalItems: totals?.totalItems || items.reduce((sum, i) => sum + i.quantity, 0),
-        originalTotal: totals?.originalTotal || items.reduce((sum, i) => sum + (i.originalPrice * i.quantity), 0),
-        discountedTotal: totals?.discountedTotal || items.reduce((sum, i) => sum + (i.effectivePrice * i.quantity), 0),
-        totalSavings: totals?.totalSavings || 0
-      },
+      totals: calculatedTotals,
       paymentMethod: paymentMethod || 'Not specified',
       status: 'confirmed',
-      orderDate: new Date().toISOString(),
-      estimatedDelivery: getEstimatedDelivery()
-    };
+      estimatedDelivery,
+      orderDate: new Date()
+    });
 
-    // Add to history (at the beginning for most recent first)
-    orderHistory.unshift(order);
+    const savedOrder = await order.save();
 
     res.status(201).json({
       success: true,
       message: 'Order saved to history',
-      order
+      order: savedOrder
     });
 
   } catch (error) {
     console.error('Error saving order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to save order'
+      message: 'Failed to save order',
+      error: error.message
     });
   }
 };
 
 /**
- * Get order history
+ * Get order history from MongoDB
  */
-const getOrderHistory = (req, res) => {
+const getOrderHistory = async (req, res) => {
   try {
-    const { platform, limit } = req.query;
-    
-    let orders = [...orderHistory];
-    
+    const { userId, platform, limit = 50 } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    const query = { userId };
+
     // Filter by platform if specified
     if (platform && ['swiggy', 'zomato'].includes(platform)) {
-      orders = orders.filter(o => o.platform === platform);
+      query.platform = platform;
     }
-    
-    // Limit results if specified
-    if (limit && !isNaN(parseInt(limit))) {
-      orders = orders.slice(0, parseInt(limit));
-    }
+
+    // Fetch orders sorted by most recent first
+    const orders = await Order.find(query)
+      .sort({ orderDate: -1 })
+      .limit(parseInt(limit))
+      .exec();
+
+    const totalCount = await Order.countDocuments(query);
 
     res.json({
       success: true,
       count: orders.length,
-      totalOrders: orderHistory.length,
+      totalOrders: totalCount,
       orders
     });
 
@@ -104,20 +126,21 @@ const getOrderHistory = (req, res) => {
     console.error('Error fetching order history:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch order history'
+      message: 'Failed to fetch order history',
+      error: error.message
     });
   }
 };
 
 /**
- * Get a specific order by ID
+ * Get a specific order by ID from MongoDB
  */
-const getOrderById = (req, res) => {
+const getOrderById = async (req, res) => {
   try {
     const { orderId } = req.params;
-    
-    const order = orderHistory.find(o => o.orderId === orderId);
-    
+
+    const order = await Order.findOne({ orderId });
+
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -134,83 +157,92 @@ const getOrderById = (req, res) => {
     console.error('Error fetching order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch order'
+      message: 'Failed to fetch order',
+      error: error.message
     });
   }
 };
 
 /**
- * Update order status (for tracking)
+ * Update order status in MongoDB
  */
-const updateOrderStatus = (req, res) => {
+const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-    
+
     const validStatuses = ['confirmed', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'];
-    
+
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
         message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
       });
     }
-    
-    const orderIndex = orderHistory.findIndex(o => o.orderId === orderId);
-    
-    if (orderIndex === -1) {
+
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      {
+        status,
+        updatedAt: new Date(),
+        ...(status === 'delivered' && { deliveredAt: new Date() })
+      },
+      { new: true }
+    );
+
+    if (!order) {
       return res.status(404).json({
         success: false,
         message: 'Order not found'
       });
     }
 
-    orderHistory[orderIndex].status = status;
-    orderHistory[orderIndex].updatedAt = new Date().toISOString();
-    
-    if (status === 'delivered') {
-      orderHistory[orderIndex].deliveredAt = new Date().toISOString();
-    }
-
     res.json({
       success: true,
       message: `Order status updated to ${status}`,
-      order: orderHistory[orderIndex]
+      order
     });
 
   } catch (error) {
     console.error('Error updating order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update order'
+      message: 'Failed to update order',
+      error: error.message
     });
   }
 };
 
 /**
- * Clear order history (for testing)
+ * Delete an order from MongoDB
  */
-const clearHistory = (req, res) => {
-  orderHistory.length = 0;
-  res.json({
-    success: true,
-    message: 'Order history cleared'
-  });
-};
+const deleteOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
 
-/**
- * Get estimated delivery time (30-45 mins from now)
- */
-const getEstimatedDelivery = () => {
-  const now = new Date();
-  const minDelivery = new Date(now.getTime() + 30 * 60000);
-  const maxDelivery = new Date(now.getTime() + 45 * 60000);
-  
-  return {
-    min: minDelivery.toISOString(),
-    max: maxDelivery.toISOString(),
-    display: '30-45 mins'
-  };
+    const order = await Order.findOneAndDelete({ orderId });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Order deleted successfully',
+      order
+    });
+
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete order',
+      error: error.message
+    });
+  }
 };
 
 module.exports = {
@@ -218,5 +250,5 @@ module.exports = {
   getOrderHistory,
   getOrderById,
   updateOrderStatus,
-  clearHistory
+  deleteOrder
 };

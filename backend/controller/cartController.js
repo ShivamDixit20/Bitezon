@@ -251,11 +251,10 @@ const clearCart = (req, res) => {
   }
 };
 
-// Generate checkout redirect URL
-const checkout = (req, res) => {
+// Generate checkout redirect URL and save order to database
+const checkout = async (req, res) => {
   try {
-    const { platform } = req.body;
-    const userId = req.body.userId || 'default';
+    const { platform, userId = 'default', saveOrder = false } = req.body;
     
     if (!platform || !['swiggy', 'zomato'].includes(platform)) {
       return res.status(400).json({
@@ -300,13 +299,48 @@ const checkout = (req, res) => {
         name: platformCart.restaurantName
       },
       items: platformCart.items.map(item => ({
-        name: item.itemName,
+        itemId: item.itemId,
+        itemName: item.itemName,
         quantity: item.quantity,
-        price: item.effectivePrice
+        originalPrice: item.originalPrice,
+        effectivePrice: item.effectivePrice,
+        offer: item.offer
       })),
       totals: totals[platform],
       createdAt: new Date().toISOString()
     };
+    
+    let savedOrder = null;
+    
+    // If saveOrder flag is true, save to database
+    if (saveOrder && userId !== 'default') {
+      try {
+        const Order = require('../models/Order');
+        const { nanoid } = require('nanoid');
+        
+        const estimatedDelivery = new Date();
+        estimatedDelivery.setMinutes(estimatedDelivery.getMinutes() + 35);
+        
+        const order = new Order({
+          orderId: nanoid(12),
+          userId,
+          platform,
+          restaurantId: platformCart.restaurantId,
+          restaurantName: platformCart.restaurantName,
+          items: platformCart.items,
+          totals: totals[platform],
+          paymentMethod: 'Online Payment',
+          status: 'confirmed',
+          estimatedDelivery,
+          orderDate: new Date()
+        });
+        
+        savedOrder = await order.save();
+      } catch (error) {
+        console.warn('Failed to save order to database:', error.message);
+        // Continue with checkout even if save fails
+      }
+    }
     
     res.json({
       success: true,
@@ -317,7 +351,8 @@ const checkout = (req, res) => {
         webUrl,           // Web fallback
         appScheme,        // App scheme for detection
         orderSummary
-      }
+      },
+      ...(savedOrder && { savedOrder })
     });
   } catch (error) {
     res.status(500).json({

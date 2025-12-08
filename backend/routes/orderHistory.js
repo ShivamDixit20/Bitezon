@@ -18,7 +18,7 @@ router.get('/:orderId', orderHistoryController.getOrderById);
 // Update order status
 router.patch('/:orderId/status', orderHistoryController.updateOrderStatus);
 
-// Clear history (for testing)
-router.delete('/clear', orderHistoryController.clearHistory);
+// Delete an order
+router.delete('/:orderId', orderHistoryController.deleteOrder);
 
 module.exports = router;
