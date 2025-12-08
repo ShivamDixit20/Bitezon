@@ -188,7 +188,7 @@ const OrderHistory = ({ user }) => {
               </div>
 
               {filteredOrders.map((order) => (
-                <div key={order._id}>
+                <div key={order.orderId}>
                   <div style={styles.tableRow}>
                     <div style={styles.colRestaurant}>
                       <span style={styles.restaurantName}>{order.restaurantName || 'N/A'}</span>
@@ -218,13 +218,13 @@ const OrderHistory = ({ user }) => {
                     <div style={styles.colActions}>
                       <button 
                         style={styles.actionBtn}
-                        onClick={() => handleViewDetails(order._id)}
+                        onClick={() => handleViewDetails(order.orderId)}
                       >
                         {order.status === 'delivered' ? 'Reorder' : 'View Details'}
                       </button>
                       <button 
                         style={styles.deleteBtn}
-                        onClick={() => handleDeleteOrder(order._id)}
+                        onClick={() => handleDeleteOrder(order.orderId)}
                         title="Delete order"
                       >
                         Delete
@@ -232,7 +232,7 @@ const OrderHistory = ({ user }) => {
                     </div>
                   </div>
                   
-                  {expandedOrderId === order._id && (
+                  {expandedOrderId === order.orderId && (
                     <div style={styles.expandedDetails}>
                       <h4 style={styles.detailsTitle}>Order Details</h4>
                       <div style={styles.detailsGrid}>
