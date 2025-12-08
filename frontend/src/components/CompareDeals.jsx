@@ -4,7 +4,6 @@ const API_BASE = 'http://localhost:3000/api/compare';
 const CART_API = 'http://localhost:3000/api/cart';
 
 function CompareDeals({ onCartUpdate }) {
-  const [bestDeals, setBestDeals] = useState(null);
   const [restaurantComparison, setRestaurantComparison] = useState(null);
   const [menuSearch, setMenuSearch] = useState(null);
   const [loading, setLoading] = useState('');
@@ -15,7 +14,6 @@ function CompareDeals({ onCartUpdate }) {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState('1');
 
   const clearResults = () => {
-    setBestDeals(null);
     setRestaurantComparison(null);
     setMenuSearch(null);
     setError('');
@@ -44,7 +42,7 @@ function CompareDeals({ onCartUpdate }) {
       const data = await response.json();
       
       if (data.success) {
-        setCartMessage(`✅ Added ${item.itemName || item.name} to ${platform === 'swiggy' ? '🟧 Swiggy' : '🔴 Zomato'} cart!`);
+        setCartMessage(`Added ${item.itemName || item.name} to cart!`);
         if (onCartUpdate) {
           onCartUpdate(data.cart);
         }
@@ -56,40 +54,6 @@ function CompareDeals({ onCartUpdate }) {
     } catch (err) {
       setError('Failed to add to cart: ' + err.message);
     }
-  };
-
-  // Add best deal to cart (winner platform)
-  const addBestDealToCart = async (deal) => {
-    const platform = deal.bestDeal === 'either' ? 'swiggy' : deal.bestDeal;
-    const item = {
-      itemId: deal.itemId,
-      itemName: deal.itemName,
-      originalPrice: deal[platform]?.originalPrice || deal[platform]?.effectivePrice,
-      effectivePrice: deal[platform]?.effectivePrice,
-      offer: deal[platform]?.offer,
-      restaurantId: deal.restaurantId,
-      restaurantName: deal.restaurantName
-    };
-    await addToCart(platform, item, { id: deal.restaurantId, name: deal.restaurantName });
-  };
-
-  // Fetch best deals across all items
-  const fetchBestDeals = async () => {
-    setLoading('bestDeals');
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/best-deals`);
-      const data = await res.json();
-      
-      if (data.success) {
-        setBestDeals(data);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-    setLoading('');
   };
 
   // Compare a specific restaurant
@@ -134,165 +98,19 @@ function CompareDeals({ onCartUpdate }) {
     setLoading('');
   };
 
-  const getPlatformBadge = (platform) => {
-    if (platform === 'swiggy') {
-      return <span className="badge swiggy-badge">🍔 Swiggy</span>;
-    } else if (platform === 'zomato') {
-      return <span className="badge zomato-badge">🍕 Zomato</span>;
-    } else {
-      return <span className="badge neutral-badge">🤝 Either</span>;
-    }
-  };
-
   return (
     <div className="compare-deals">
-      <h1>⚖️ Compare Deals</h1>
+      <h1>Compare Deals</h1>
       <p className="subtitle">Find the best prices across Swiggy and Zomato</p>
       
-      {error && <div className="error-box">❌ {error}</div>}
+      {error && <div className="error-box">{error}</div>}
       {cartMessage && <div className="cart-message">{cartMessage}</div>}
       
       <button className="clear-btn" onClick={clearResults}>Clear All Results</button>
 
-      {/* Best Deals Section */}
-      <section className="compare-section">
-        <h2>🏆 Best Deals Across All Items</h2>
-        <p>Compare all menu items and find where to order for maximum savings</p>
-        <button onClick={fetchBestDeals} disabled={loading === 'bestDeals'}>
-          {loading === 'bestDeals' ? 'Analyzing...' : 'Find Best Deals'}
-        </button>
-        
-        {bestDeals && (
-          <div className="results">
-            {/* Summary Cards */}
-            <div className="summary-grid">
-              <div className="summary-card">
-                <div className="summary-number">{bestDeals.summary.totalItems}</div>
-                <div className="summary-label">Total Items</div>
-              </div>
-              <div className="summary-card swiggy-win">
-                <div className="summary-number">{bestDeals.summary.swiggyWins}</div>
-                <div className="summary-label">Swiggy Wins</div>
-              </div>
-              <div className="summary-card zomato-win">
-                <div className="summary-number">{bestDeals.summary.zomatoWins}</div>
-                <div className="summary-label">Zomato Wins</div>
-              </div>
-              <div className="summary-card savings">
-                <div className="summary-number">₹{bestDeals.summary.totalPotentialSavings.toFixed(0)}</div>
-                <div className="summary-label">Total Potential Savings</div>
-              </div>
-            </div>
-
-            {/* Deals Table */}
-            <h3>📊 Item-by-Item Comparison</h3>
-            <div className="deals-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Category</th>
-                    <th>Swiggy Price</th>
-                    <th>Zomato Price</th>
-                    <th>Best Deal</th>
-                    <th>Savings</th>
-                    <th>Add to Cart</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bestDeals.deals.map((deal, index) => (
-                    <tr key={index} className={deal.bestDeal !== 'either' ? 'has-winner' : ''}>
-                      <td>
-                        <span className={deal.isVeg ? 'veg-dot' : 'non-veg-dot'}>●</span>
-                        {deal.itemName}
-                      </td>
-                      <td>{deal.category}</td>
-                      <td className={deal.bestDeal === 'swiggy' ? 'winner-cell' : ''}>
-                        {deal.swiggy ? (
-                          <>
-                            <div className="price">₹{deal.swiggy.effectivePrice.toFixed(0)}</div>
-                            {deal.swiggy.offer && <div className="offer-tag">{deal.swiggy.offer}</div>}
-                          </>
-                        ) : '-'}
-                      </td>
-                      <td className={deal.bestDeal === 'zomato' ? 'winner-cell' : ''}>
-                        {deal.zomato ? (
-                          <>
-                            <div className="price">₹{deal.zomato.effectivePrice.toFixed(0)}</div>
-                            {deal.zomato.offer && <div className="offer-tag">{deal.zomato.offer}</div>}
-                          </>
-                        ) : '-'}
-                      </td>
-                      <td>{getPlatformBadge(deal.bestDeal)}</td>
-                      <td className="savings-cell">
-                        {deal.priceDifference > 0 ? (
-                          <>
-                            <div className="savings-amount">₹{deal.priceDifference.toFixed(0)}</div>
-                            <div className="savings-percent">{deal.percentageSavings}% off</div>
-                          </>
-                        ) : (
-                          <span className="same-price">Same</span>
-                        )}
-                      </td>
-                      <td className="cart-actions-cell">
-                        <div className="cart-buttons">
-                          {deal.swiggy && (
-                            <button
-                              className="cart-btn swiggy-cart-btn"
-                              onClick={() => addToCart('swiggy', {
-                                itemId: deal.itemId,
-                                itemName: deal.itemName,
-                                originalPrice: deal.swiggy.originalPrice || deal.swiggy.effectivePrice,
-                                effectivePrice: deal.swiggy.effectivePrice,
-                                offer: deal.swiggy.offer,
-                                restaurantId: deal.restaurantId,
-                                restaurantName: deal.restaurantName
-                              }, { id: deal.restaurantId, name: deal.restaurantName })}
-                              title="Add to Swiggy Cart"
-                            >
-                              🟧
-                            </button>
-                          )}
-                          {deal.zomato && (
-                            <button
-                              className="cart-btn zomato-cart-btn"
-                              onClick={() => addToCart('zomato', {
-                                itemId: deal.itemId,
-                                itemName: deal.itemName,
-                                originalPrice: deal.zomato.originalPrice || deal.zomato.effectivePrice,
-                                effectivePrice: deal.zomato.effectivePrice,
-                                offer: deal.zomato.offer,
-                                restaurantId: deal.restaurantId,
-                                restaurantName: deal.restaurantName
-                              }, { id: deal.restaurantId, name: deal.restaurantName })}
-                              title="Add to Zomato Cart"
-                            >
-                              🔴
-                            </button>
-                          )}
-                          {deal.bestDeal !== 'either' && (
-                            <button
-                              className="cart-btn best-deal-btn"
-                              onClick={() => addBestDealToCart(deal)}
-                              title="Add Best Deal to Cart"
-                            >
-                              🏆
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </section>
-
       {/* Restaurant Comparison Section */}
       <section className="compare-section">
-        <h2>🏪 Compare Restaurant</h2>
+        <h2>Compare Restaurant</h2>
         <p>See how a restaurant's prices differ between platforms</p>
         <div className="filter-row">
           <select value={selectedRestaurantId} onChange={(e) => setSelectedRestaurantId(e.target.value)}>
@@ -324,24 +142,24 @@ function CompareDeals({ onCartUpdate }) {
             <div className="platform-comparison">
               {restaurantComparison.platformComparison.swiggy && (
                 <div className="platform-card swiggy-card">
-                  <h4>🍔 Swiggy</h4>
+                  <h4>Swiggy</h4>
                   <div className="platform-stats">
-                    <div>⭐ {restaurantComparison.platformComparison.swiggy.rating}</div>
-                    <div>🕐 {restaurantComparison.platformComparison.swiggy.deliveryTime}</div>
+                    <div>Rating: {restaurantComparison.platformComparison.swiggy.rating}</div>
+                    <div>Delivery: {restaurantComparison.platformComparison.swiggy.deliveryTime}</div>
                     {restaurantComparison.platformComparison.swiggy.bestOffer && (
-                      <div className="offer">🎉 {restaurantComparison.platformComparison.swiggy.bestOffer}</div>
+                      <div className="offer">{restaurantComparison.platformComparison.swiggy.bestOffer}</div>
                     )}
                   </div>
                 </div>
               )}
               {restaurantComparison.platformComparison.zomato && (
                 <div className="platform-card zomato-card">
-                  <h4>🍕 Zomato</h4>
+                  <h4>Zomato</h4>
                   <div className="platform-stats">
-                    <div>⭐ {restaurantComparison.platformComparison.zomato.rating}</div>
-                    <div>🕐 {restaurantComparison.platformComparison.zomato.deliveryTime}</div>
+                    <div>Rating: {restaurantComparison.platformComparison.zomato.rating}</div>
+                    <div>Delivery: {restaurantComparison.platformComparison.zomato.deliveryTime}</div>
                     {restaurantComparison.platformComparison.zomato.bestOffer && (
-                      <div className="offer">🎉 {restaurantComparison.platformComparison.zomato.bestOffer}</div>
+                      <div className="offer">{restaurantComparison.platformComparison.zomato.bestOffer}</div>
                     )}
                   </div>
                 </div>
@@ -390,7 +208,7 @@ function CompareDeals({ onCartUpdate }) {
                           restaurantName: restaurantComparison.restaurant.name
                         }, restaurantComparison.restaurant)}
                       >
-                        🟧 Add to Swiggy
+                        Add to Swiggy
                       </button>
                     )}
                     {item.zomato && (
@@ -406,7 +224,7 @@ function CompareDeals({ onCartUpdate }) {
                           restaurantName: restaurantComparison.restaurant.name
                         }, restaurantComparison.restaurant)}
                       >
-                        🔴 Add to Zomato
+                        Add to Zomato
                       </button>
                     )}
                   </div>
@@ -419,7 +237,7 @@ function CompareDeals({ onCartUpdate }) {
 
       {/* Search Item Section */}
       <section className="compare-section">
-        <h2>🔍 Search & Compare Item</h2>
+        <h2>Search & Compare Item</h2>
         <p>Search for a specific item and compare prices</p>
         <div className="filter-row">
           <input
@@ -440,37 +258,37 @@ function CompareDeals({ onCartUpdate }) {
             <div className="search-results">
               {menuSearch.data.map((item, index) => (
                 <div key={index} className="search-result-card">
-                  <div className="result-header">
-                    <span className={item.isVeg ? 'veg-dot' : 'non-veg-dot'}>●</span>
-                    <span className="result-name">{item.itemName}</span>
-                    <span className="result-restaurant">@ {item.restaurantName}</span>
-                  </div>
-                  <div className="result-comparison">
-                    <div className={`result-platform ${item.bestDeal === 'swiggy' ? 'winner' : ''}`}>
-                      <div className="platform-name">Swiggy</div>
-                      {item.swiggy ? (
-                        <>
-                          <div className="result-price">₹{item.swiggy.effectivePrice.toFixed(0)}</div>
-                          {item.swiggy.offer && <div className="result-offer">{item.swiggy.offer}</div>}
-                        </>
-                      ) : <div className="not-available">N/A</div>}
+                  <div className="result-content">
+                    <div className="result-header">
+                      <span className={item.isVeg ? 'veg-dot' : 'non-veg-dot'}>●</span>
+                      <span className="result-name">{item.itemName}</span>
+                      <span className="result-restaurant">@ {item.restaurantName}</span>
                     </div>
-                    <div className="vs">VS</div>
-                    <div className={`result-platform ${item.bestDeal === 'zomato' ? 'winner' : ''}`}>
-                      <div className="platform-name">Zomato</div>
-                      {item.zomato ? (
-                        <>
-                          <div className="result-price">₹{item.zomato.effectivePrice.toFixed(0)}</div>
-                          {item.zomato.offer && <div className="result-offer">{item.zomato.offer}</div>}
-                        </>
-                      ) : <div className="not-available">N/A</div>}
+                    <div className="result-comparison">
+                      <div className={`result-platform ${item.bestDeal === 'swiggy' ? 'winner' : ''}`}>
+                        <div className="platform-name">Swiggy</div>
+                        {item.swiggy ? (
+                          <>
+                            <div className="result-price">₹{item.swiggy.effectivePrice.toFixed(0)}</div>
+                            {item.swiggy.offer && <div className="result-offer">{item.swiggy.offer}</div>}
+                          </>
+                        ) : <div className="not-available">N/A</div>}
+                      </div>
+                      <div className="vs">VS</div>
+                      <div className={`result-platform ${item.bestDeal === 'zomato' ? 'winner' : ''}`}>
+                        <div className="platform-name">Zomato</div>
+                        {item.zomato ? (
+                          <>
+                            <div className="result-price">₹{item.zomato.effectivePrice.toFixed(0)}</div>
+                            {item.zomato.offer && <div className="result-offer">{item.zomato.offer}</div>}
+                          </>
+                        ) : <div className="not-available">N/A</div>}
+                      </div>
                     </div>
-                  </div>
-                  <div className="result-verdict">
-                    {getPlatformBadge(item.bestDeal)}
-                    <span className="verdict-text">{item.reason}</span>
-                  </div>
-                  <div className="result-cart-actions">
+                    <div className="result-verdict">
+                      <span className="verdict-text">{item.reason}</span>
+                    </div>
+                    <div className="result-cart-actions">
                     {item.swiggy && (
                       <button
                         className="cart-btn swiggy-cart-btn"
@@ -484,7 +302,7 @@ function CompareDeals({ onCartUpdate }) {
                           restaurantName: item.restaurantName
                         }, { id: item.restaurantId, name: item.restaurantName })}
                       >
-                        🟧 Swiggy
+                        Add to Swiggy
                       </button>
                     )}
                     {item.zomato && (
@@ -500,9 +318,10 @@ function CompareDeals({ onCartUpdate }) {
                           restaurantName: item.restaurantName
                         }, { id: item.restaurantId, name: item.restaurantName })}
                       >
-                        🔴 Zomato
+                        Add to Zomato
                       </button>
                     )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -513,36 +332,39 @@ function CompareDeals({ onCartUpdate }) {
 
       <style>{`
         .compare-deals {
-          max-width: 1100px;
+          max-width: 1200px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 24px 20px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         .compare-deals h1 {
           text-align: center;
-          color: #2c3e50;
-          font-size: 2.4rem;
+          color: rgb(239, 79, 95);
+          font-size: 2.2rem;
+          margin: 0 0 8px 0;
+          font-weight: 800;
         }
         .subtitle {
           text-align: center;
           color: #666;
-          margin-bottom: 20px;
-          font-size: 1.2rem;
+          margin-bottom: 28px;
+          font-size: 1rem;
         }
         .error-box {
-          background: #fee;
-          border: 1px solid #f99;
-          padding: 10px;
-          border-radius: 5px;
-          margin-bottom: 15px;
-          color: #c00;
+          background: #ffebee;
+          border: 1px solid #ef5350;
+          padding: 12px 16px;
+          border-radius: 6px;
+          margin-bottom: 16px;
+          color: #c62828;
+          font-weight: 500;
         }
         .cart-message {
           background: #e8f5e9;
           border: 1px solid #4caf50;
-          padding: 12px 20px;
-          border-radius: 8px;
-          margin-bottom: 15px;
+          padding: 12px 16px;
+          border-radius: 6px;
+          margin-bottom: 16px;
           color: #2e7d32;
           font-weight: 500;
           text-align: center;
@@ -553,60 +375,83 @@ function CompareDeals({ onCartUpdate }) {
           to { transform: translateY(0); opacity: 1; }
         }
         .clear-btn {
-          background: #666;
+          background: rgb(239, 79, 95);
           color: white;
           border: none;
-          padding: 8px 16px;
-          border-radius: 5px;
+          padding: 10px 20px;
+          border-radius: 6px;
           cursor: pointer;
-          margin-bottom: 20px;
+          font-weight: 600;
+          margin-bottom: 24px;
+          transition: background 0.2s;
+        }
+        .clear-btn:hover {
+          background: #e85a73;
         }
         .compare-section {
-          background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-          border: 1px solid #ddd;
-          border-radius: 12px;
-          padding: 25px;
-          margin-bottom: 25px;
+          background: white;
+          border: 1px solid #e0e0e0;
+          border-radius: 10px;
+          padding: 28px;
+          margin-bottom: 28px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         .compare-section h2 {
           margin-top: 0;
-          color: #2c3e50;
-          border-bottom: 3px solid #3498db;
-          padding-bottom: 10px;
+          margin-bottom: 8px;
+          color: rgb(239, 79, 95);
+          border-bottom: 3px solid rgb(239, 79, 95);
+          padding-bottom: 12px;
           font-size: 1.8rem;
+          font-weight: 700;
+        }
+        .compare-section h3 {
+          color: rgb(239, 79, 95);
+          margin: 20px 0 16px 0;
+          font-size: 1.2rem;
+          font-weight: 700;
+        }
+        .compare-section h4 {
+          color: #333;
+          margin-top: 24px;
+          margin-bottom: 16px;
+          font-size: 1rem;
+          font-weight: 700;
         }
         .compare-section p {
           color: #666;
-          margin-bottom: 15px;
-          font-size: 1.1rem;
+          margin-bottom: 16px;
+          font-size: 0.95rem;
         }
         .filter-row {
           display: flex;
-          gap: 10px;
-          margin-bottom: 15px;
+          gap: 12px;
+          margin-bottom: 20px;
           flex-wrap: wrap;
         }
         .filter-row input, .filter-row select {
-          padding: 12px;
-          border: 1px solid #ccc;
-          border-radius: 8px;
+          padding: 10px 14px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
           flex: 1;
           min-width: 200px;
-          font-size: 16px;
+          font-size: 14px;
         }
         button {
-          background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+          background: rgb(239, 79, 95);
           color: white;
           border: none;
-          padding: 12px 24px;
-          border-radius: 8px;
+          padding: 10px 20px;
+          border-radius: 6px;
           cursor: pointer;
-          font-weight: bold;
-          font-size: '16px';
-          transition: transform 0.2s;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.2s;
         }
         button:hover:not(:disabled) {
           transform: translateY(-2px);
+          background: #e85a73;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         button:disabled {
           background: #ccc;
@@ -614,120 +459,9 @@ function CompareDeals({ onCartUpdate }) {
         }
         .results {
           margin-top: 20px;
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        /* Summary Grid */
-        .summary-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 15px;
-          margin-bottom: 25px;
-        }
-        .summary-card {
-          background: #f8f9fa;
-          border-radius: 10px;
-          padding: 20px;
-          text-align: center;
-        }
-        .summary-number {
-          font-size: 2rem;
-          font-weight: bold;
-          color: #2c3e50;
-        }
-        .summary-label {
-          color: #666;
-          font-size: 0.9rem;
-        }
-        .summary-card.swiggy-win {
-          background: #fff5eb;
-          border: 2px solid #fc8019;
-        }
-        .summary-card.swiggy-win .summary-number { color: #fc8019; }
-        .summary-card.zomato-win {
-          background: #fff5f5;
-          border: 2px solid #e23744;
-        }
-        .summary-card.zomato-win .summary-number { color: #e23744; }
-        .summary-card.savings {
-          background: #e8f5e9;
-          border: 2px solid #4caf50;
-        }
-        .summary-card.savings .summary-number { color: #4caf50; }
-        
-        /* Table Styles */
-        .deals-table {
-          overflow-x: auto;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        th, td {
-          padding: 12px;
-          text-align: left;
-          border-bottom: 1px solid #eee;
-          font-size: 15px;
-        }
-        th {
-          background: #f8f9fa;
-          font-weight: 600;
-          color: #2c3e50;
-          font-size: 16px;
-        }
-        tr:hover {
-          background: #f8f9fa;
-        }
-        .veg-dot { color: #0f9d58; margin-right: 5px; }
-        .non-veg-dot { color: #db4437; margin-right: 5px; }
-        .price { font-weight: 600; }
-        .offer-tag {
-          font-size: 0.75rem;
-          color: #666;
-          margin-top: 3px;
-        }
-        .winner-cell {
-          background: #e8f5e9 !important;
-        }
-        .savings-cell {
-          text-align: center;
-        }
-        .savings-amount {
-          font-weight: bold;
-          color: #4caf50;
-        }
-        .savings-percent {
-          font-size: 0.8rem;
-          color: #666;
-        }
-        .same-price {
-          color: #999;
-        }
-        
-        /* Badges */
-        .badge {
-          padding: 4px 10px;
-          border-radius: 15px;
-          font-size: 0.8rem;
-          font-weight: 600;
-        }
-        .swiggy-badge {
-          background: #fff5eb;
-          color: #fc8019;
-          border: 1px solid #fc8019;
-        }
-        .zomato-badge {
-          background: #fff5f5;
-          color: #e23744;
-          border: 1px solid #e23744;
-        }
-        .neutral-badge {
-          background: #f0f0f0;
-          color: #666;
-          border: 1px solid #ccc;
+          background: #fafafa;
+          padding: 0;
+          border-radius: 8px;
         }
         
         /* Platform Comparison */
@@ -741,110 +475,139 @@ function CompareDeals({ onCartUpdate }) {
           padding: 20px;
           border-radius: 10px;
           text-align: center;
+          border: 2px solid #e0e0e0;
+          background: #f9f9f9;
         }
         .platform-card h4 {
           margin: 0 0 15px;
           font-size: 1.2rem;
+          color: #333;
         }
         .swiggy-card {
-          background: #fff5eb;
-          border: 2px solid #fc8019;
+          background: #fafafa;
+          border: 2px solid #ff9500;
+        }
+        .swiggy-card h4 {
+          color: #ff9500;
         }
         .zomato-card {
-          background: #fff5f5;
-          border: 2px solid #e23744;
+          background: #fafafa;
+          border: 2px solid #e31c23;
+        }
+        .zomato-card h4 {
+          color: #e31c23;
         }
         .platform-stats {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
+          color: #333;
+          font-weight: 500;
         }
         .platform-stats .offer {
-          background: white;
-          padding: 5px 10px;
+          background: #e8f5e9;
+          color: #2e7d32;
+          padding: 6px 12px;
           border-radius: 5px;
-          font-size: 0.85rem;
+          font-size: 0.9rem;
+          font-weight: 600;
         }
         
         /* Restaurant Summary */
         .restaurant-summary {
           display: flex;
-          gap: 15px;
+          gap: 16px;
           flex-wrap: wrap;
-          margin-bottom: 20px;
-          padding: 15px;
-          background: #f8f9fa;
+          margin-bottom: 24px;
+          padding: 16px;
+          background: #f9f9f9;
           border-radius: 8px;
+          border: 1px solid #e0e0e0;
         }
         .restaurant-summary span {
-          padding: 5px 12px;
-          border-radius: 5px;
-          font-size: 0.9rem;
+          padding: 8px 14px;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          font-weight: 600;
         }
-        .swiggy-better { background: #fff5eb; color: #fc8019; }
-        .zomato-better { background: #fff5f5; color: #e23744; }
+        .swiggy-better { background: #fff5eb; color: #ff9500; }
+        .zomato-better { background: #fff5f5; color: #e31c23; }
         .same { background: #f0f0f0; color: #666; }
-        .total-savings { background: #e8f5e9; color: #4caf50; font-weight: bold; }
+        .total-savings { background: #e8f5e9; color: #2e7d32; }
         
         /* Menu Comparison Grid */
         .menu-comparison-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 15px;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
         }
         .menu-comparison-item {
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          padding: 15px;
+          border: 1px solid #e0e0e0;
+          border-radius: 10px;
+          overflow: hidden;
           background: white;
+          transition: box-shadow 0.2s;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .menu-comparison-item:hover {
+          box-shadow: 0 6px 16px rgba(0,0,0,0.12);
         }
         .menu-comparison-item.swiggy-better {
-          border-left: 4px solid #fc8019;
+          border-top: 4px solid #ff9500;
         }
         .menu-comparison-item.zomato-better {
-          border-left: 4px solid #e23744;
+          border-top: 4px solid #e31c23;
         }
         .item-header {
           display: flex;
           align-items: center;
-          gap: 5px;
-          margin-bottom: 10px;
+          gap: 8px;
+          padding: 16px 16px 12px;
+          flex-wrap: wrap;
         }
         .item-name {
-          font-weight: 600;
+          font-weight: 700;
+          font-size: 1rem;
+          color: #1a1a1a;
           flex: 1;
         }
         .item-savings {
           background: #e8f5e9;
-          color: #4caf50;
-          padding: 2px 8px;
+          color: #2e7d32;
+          padding: 4px 10px;
           border-radius: 10px;
-          font-size: 0.8rem;
-          font-weight: 600;
+          font-size: 0.75rem;
+          font-weight: 700;
+          white-space: nowrap;
         }
         .item-prices {
           display: flex;
-          gap: 10px;
+          gap: 12px;
+          padding: 0 16px 12px;
         }
         .price-box {
           flex: 1;
           text-align: center;
-          padding: 8px;
-          border-radius: 5px;
+          padding: 10px;
+          border-radius: 6px;
           background: #f8f9fa;
+          border: 1px solid #e0e0e0;
         }
         .price-box.winner {
           background: #e8f5e9;
-          border: 1px solid #4caf50;
+          border: 2px solid #4caf50;
         }
         .platform-label {
           font-size: 0.75rem;
           color: #666;
           display: block;
+          margin-bottom: 4px;
+          font-weight: 600;
         }
         .price-value {
           font-weight: bold;
-          font-size: 1.1rem;
+          font-size: 1.2rem;
+          color: rgb(239, 79, 95);
         }
         
         /* Search Results */
@@ -856,35 +619,56 @@ function CompareDeals({ onCartUpdate }) {
         .search-result-card {
           border: 1px solid #ddd;
           border-radius: 10px;
-          padding: 20px;
+          overflow: hidden;
           background: white;
+          display: flex;
+          gap: 0;
+          transition: box-shadow 0.2s;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .search-result-card:hover {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .result-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          padding: 20px;
         }
         .result-header {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 15px;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
         }
         .result-name {
-          font-weight: 600;
-          font-size: 1.3rem;
+          font-weight: 700;
+          font-size: 1.1rem;
+          color: #1a1a1a;
         }
         .result-restaurant {
           color: #666;
-          font-size: 1.05rem;
+          font-size: 0.9rem;
+          margin-left: auto;
         }
         .result-comparison {
           display: flex;
-          align-items: center;
-          gap: 15px;
-          margin-bottom: 15px;
+          align-items: stretch;
+          gap: 12px;
+          margin-bottom: 16px;
+          flex: 1;
         }
         .result-platform {
           flex: 1;
           text-align: center;
-          padding: 15px;
+          padding: 12px;
           border-radius: 8px;
           background: #f8f9fa;
+          border: 1px solid #e0e0e0;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
         .result-platform.winner {
           background: #e8f5e9;
@@ -892,94 +676,103 @@ function CompareDeals({ onCartUpdate }) {
         }
         .platform-name {
           font-weight: 600;
-          margin-bottom: 5px;
+          margin-bottom: 6px;
+          font-size: 0.9rem;
+          color: #333;
         }
         .result-price {
-          font-size: 1.8rem;
+          font-size: 1.5rem;
           font-weight: bold;
-          color: #2c3e50;
+          color: rgb(239, 79, 95);
+          margin: 4px 0;
         }
         .result-offer {
-          font-size: 0.95rem;
-          color: #666;
-          margin-top: 5px;
+          font-size: 0.8rem;
+          color: #4caf50;
+          margin-top: 4px;
+          font-weight: 600;
         }
         .not-available {
           color: #999;
+          font-size: 0.9rem;
         }
         .vs {
           font-weight: bold;
-          color: #999;
-        }
-        .result-verdict {
+          color: #ccc;
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding-top: 15px;
-          border-top: 1px solid #eee;
+        }
+        .result-verdict {
+          padding-top: 12px;
+          border-top: 1px solid #e8e8e8;
         }
         .verdict-text {
           color: #666;
+          font-size: 0.85rem;
+          line-height: 1.4;
         }
 
         /* Cart Button Styles */
-        .cart-actions-cell {
-          padding: 8px !important;
-        }
-        .cart-buttons {
-          display: flex;
-          gap: 6px;
-          justify-content: center;
-        }
-        .cart-btn {
-          padding: 6px 10px;
-          border-radius: 6px;
-          border: none;
-          cursor: pointer;
-          font-size: 15px;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-        .cart-btn:hover {
-          transform: scale(1.1);
-        }
-        .swiggy-cart-btn {
-          background: linear-gradient(135deg, #fc8019 0%, #e67316 100%);
-          color: white;
-        }
-        .zomato-cart-btn {
-          background: linear-gradient(135deg, #e23744 0%, #cb3037 100%);
-          color: white;
-        }
-        .best-deal-btn {
-          background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-          color: white;
-        }
         .item-cart-actions {
           display: flex;
-          gap: 8px;
-          margin-top: 10px;
+          gap: 10px;
+          padding: 0 16px 16px;
           flex-wrap: wrap;
         }
         .item-cart-actions .cart-btn {
           flex: 1;
           justify-content: center;
-          padding: 8px 12px;
+          padding: 10px 12px;
+          min-width: 120px;
+          font-size: 0.9rem;
         }
         .result-cart-actions {
           display: flex;
-          gap: 8px;
-          margin-top: 12px;
-          padding-top: 12px;
-          border-top: 1px solid #eee;
+          gap: 10px;
+          padding: 16px 20px;
+          border-top: 1px solid #e8e8e8;
+          margin-top: auto;
         }
         .result-cart-actions .cart-btn {
           flex: 1;
           justify-content: center;
           padding: 10px 15px;
+          font-size: 0.9rem;
         }
+        .cart-btn {
+          padding: 8px 12px;
+          border-radius: 6px;
+          border: none;
+          cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 600;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+        .cart-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .swiggy-cart-btn {
+          background: #ff9500;
+          color: white;
+        }
+        .swiggy-cart-btn:hover {
+          background: #e68a00;
+        }
+        .zomato-cart-btn {
+          background: #e31c23;
+          color: white;
+        }
+        .zomato-cart-btn:hover {
+          background: #c41815;
+        }
+
+        .veg-dot { color: #0f9d58; font-weight: bold; }
+        .non-veg-dot { color: #e31c23; font-weight: bold; }
       `}</style>
     </div>
   );

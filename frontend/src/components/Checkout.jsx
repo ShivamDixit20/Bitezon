@@ -171,11 +171,10 @@ const Checkout = ({ platform, onBack, onComplete }) => {
           <h2 style={styles.title}>Checkout - {platformName}</h2>
         </div>
 
-        {error && <div style={styles.error}>❌ {error}</div>}
+        {error && <div style={styles.error}>{error}</div>}
 
         {/* Restaurant Info */}
         <div style={styles.restaurantSection}>
-          <div style={styles.restaurantIcon}>🏪</div>
           <div>
             <div style={styles.restaurantName}>{platformCart.restaurantName}</div>
             <div style={styles.itemCount}>{totals.totalItems} item(s)</div>

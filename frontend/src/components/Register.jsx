@@ -28,7 +28,7 @@ function Register({ onSuccess, onSwitchToLogin }) {
       <div className="auth-left">
         <div className="brand">
           <h1>BITEZON</h1>
-          <p>Create your account and get started</p>
+          <p>Create your account and compare food prices across Swiggy & Zomato to get started</p>
         </div>
       </div>
 

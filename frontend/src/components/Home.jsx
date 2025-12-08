@@ -222,7 +222,6 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
         <p style={styles.heroSubtitle}>Compare prices from Zomato and Swiggy in one place.</p>
         
         <div style={styles.searchContainer}>
-          <span style={styles.searchIcon}>🔍</span>
           <input
             type="text"
             placeholder="Search for restaurants, cuisines, or dishes..."
@@ -348,7 +347,7 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
                         style={styles.viewMenuBtn}
                         onClick={() => handleViewMenu(restaurant)}
                       >
-                        📋 View Menu
+                        View Menu
                       </button>
                     </div>
                   </div>
@@ -357,7 +356,6 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
 
               {sortedRestaurants.length === 0 && (
                 <div style={styles.noResults}>
-                  <span style={styles.noResultsIcon}>🔍</span>
                   <h3>No restaurants found</h3>
                   <p>Try adjusting your filters or search query</p>
                 </div>
@@ -387,7 +385,6 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
                 </div>
               ) : menuItems.length === 0 ? (
                 <div style={styles.noMenu}>
-                  <span style={{ fontSize: '48px' }}>🍽️</span>
                   <p>No menu items available</p>
                 </div>
               ) : (
@@ -481,8 +478,8 @@ const styles = {
   },
   searchInput: {
     flex: 1,
-    padding: '14px 0',
-    fontSize: '16px',
+    padding: '16px 0',
+    fontSize: '17px',
     border: 'none',
     outline: 'none',
     backgroundColor: 'transparent',
@@ -495,11 +492,11 @@ const styles = {
     backgroundColor: '#fff'
   },
   sidebar: {
-    width: '260px',
+    width: '340px',
     flexShrink: 0,
     backgroundColor: '#fff',
-    borderRight: '1px solid #eee',
-    padding: '28px',
+    borderRight: '1px solid #e8e8e8',
+    padding: '32px 28px',
     overflowY: 'auto',
     minHeight: 'calc(100vh - 180px)'
   },
@@ -510,38 +507,43 @@ const styles = {
     color: '#1a1a1a'
   },
   filterSection: {
-    marginBottom: '28px'
+    marginBottom: '36px',
+    padding: '24px 16px',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '8px',
+    border: '1px solid #f0f0f0'
   },
   filterLabel: {
-    fontSize: '16px',
-    fontWeight: '600',
+    fontSize: '18px',
+    fontWeight: '700',
     color: '#333',
-    margin: '0 0 14px 0'
+    margin: '0 0 18px 0'
   },
   checkboxLabel: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    marginBottom: '12px',
-    fontSize: '16px',
+    gap: '12px',
+    marginBottom: '14px',
+    fontSize: '17px',
     color: '#555',
     cursor: 'pointer'
   },
   checkbox: {
-    width: '16px',
-    height: '16px',
-    accentColor: '#3b82f6',
+    width: '18px',
+    height: '18px',
+    accentColor: 'rgb(239, 79, 95)',
     cursor: 'pointer'
   },
   rangeSlider: {
     width: '100%',
-    accentColor: '#3b82f6',
-    cursor: 'pointer'
+    accentColor: 'rgb(239, 79, 95)',
+    cursor: 'pointer',
+    height: '6px'
   },
   ratingValue: {
-    fontSize: '15px',
+    fontSize: '16px',
     color: '#666',
-    marginTop: '10px'
+    marginTop: '14px'
   },
   contentArea: {
     flex: 1,
@@ -574,8 +576,8 @@ const styles = {
     transition: 'all 0.2s'
   },
   tabActive: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
+    backgroundColor: 'rgb(239, 79, 95)',
+    borderColor: 'rgb(239, 79, 95)',
     color: '#fff'
   },
   sortContainer: {
@@ -611,7 +613,7 @@ const styles = {
     width: '44px',
     height: '44px',
     border: '4px solid #f3f3f3',
-    borderTop: '4px solid #3b82f6',
+    borderTop: '4px solid rgb(239, 79, 95)',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
     margin: '0 auto 20px'
@@ -662,8 +664,8 @@ const styles = {
     color: '#999'
   },
   cardImage: {
-    width: '90px',
-    height: '80px',
+    width: '240px',
+    height: '220px',
     borderRadius: '10px',
     objectFit: 'cover',
     marginLeft: '12px'
@@ -677,7 +679,7 @@ const styles = {
   viewMenuBtn: {
     width: '100%',
     padding: '12px 24px',
-    backgroundColor: '#3b82f6',
+    backgroundColor: 'rgb(239, 79, 95)',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',

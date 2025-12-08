@@ -9,6 +9,40 @@ const zomatoRestaurants = require('../data/zomatoRestaurant');
 const zomatoMenu = require('../data/zomatoMenu');
 
 /**
+ * Map dish names/categories to image files
+ */
+const getDishImage = (itemName, category) => {
+  const name = itemName.toLowerCase();
+  const cat = (category || '').toLowerCase();
+  
+  // Direct name matches
+  if (name.includes('biryani')) return '/images/biryani.png';
+  if (name.includes('pizza')) return '/images/pizza.png';
+  if (name.includes('burger')) return '/images/burger.png';
+  if (name.includes('dosa')) return '/images/dosa.png';
+  if (name.includes('pasta')) return '/images/pasta.png';
+  if (name.includes('sushi')) return '/images/sushi.png';
+  if (name.includes('tacos')) return '/images/tacos.png';
+  if (name.includes('salad')) return '/images/salad.png';
+  if (name.includes('desert') || name.includes('dessert')) return '/images/desert.png';
+  if (name.includes('roll')) return '/images/rolls.png';
+  if (name.includes('idli') || name.includes('sambhar')) return '/images/dosa.png';
+  if (name.includes('dal makhani') || name.includes('butter chicken')) return '/images/pasta.png';
+  
+  // Category matches
+  if (cat.includes('biryani')) return '/images/biryani.png';
+  if (cat.includes('pizza')) return '/images/pizza.png';
+  if (cat.includes('burger')) return '/images/burger.png';
+  if (cat.includes('dosa') || cat.includes('south')) return '/images/dosa.png';
+  if (cat.includes('pasta')) return '/images/pasta.png';
+  if (cat.includes('sushi')) return '/images/sushi.png';
+  if (cat.includes('dessert') || cat.includes('desert')) return '/images/desert.png';
+  
+  // Default image
+  return '/images/pizza.png';
+};
+
+/**
  * Parse discount string to get discount percentage or flat amount
  * Returns { type: 'percent' | 'flat', value: number, maxDiscount?: number }
  */
@@ -142,6 +176,7 @@ const normalizeMenuItem = (item, restaurant, platform) => {
     basePrice: item.price,
     category: item.category,
     isVeg: item.isVeg,
+    image: getDishImage(item.itemName, item.category),
     platform,
     offer: bestOffer,
     parsedDiscount,
@@ -286,7 +321,8 @@ exports.compareMenuItem = (req, res) => {
           restaurantId: item.restaurantId,
           restaurantName: item.restaurantName,
           category: item.category,
-          isVeg: item.isVeg
+          isVeg: item.isVeg,
+          image: item.image
         };
       }
       comparison[key][item.platform] = {
@@ -550,6 +586,7 @@ exports.compareRestaurant = (req, res) => {
         itemName,
         isVeg: (swiggyItem || zomatoItem).isVeg,
         category: (swiggyItem || zomatoItem).category,
+        image: (swiggyItem || zomatoItem).image,
         swiggy: swiggyItem ? {
           itemId: swiggyItem.id,
           basePrice: swiggyItem.basePrice,

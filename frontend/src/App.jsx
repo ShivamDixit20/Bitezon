@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -7,6 +8,7 @@ import CompareDeals from './components/CompareDeals';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import OrderHistory from './components/OrderHistory';
+import Footer from './components/Footer';
 
 function App() {
   const [view, setView] = useState('login');
@@ -86,26 +88,27 @@ function App() {
   // Auth pages - shown when not logged in
   if (!token) {
     return (
-      <div style={styles.authPage}>
-        <div style={styles.authContainer}>
-          <div style={styles.authHeader}>
-            <span style={styles.logoIcon}>🍽️</span>
-            <h1 style={styles.logoText}>Bitezon</h1>
-            <p style={styles.tagline}>Compare food prices across Swiggy & Zomato</p>
+      <div style={styles.authPageWrapper}>
+        <div style={styles.authPage}>
+          <div style={styles.authContainer}>
+            <div style={styles.authHeader}>
+              <h1 style={styles.logoText}>Bitezon</h1>
+            </div>
+            
+            {view === 'login' || view === 'home' ? (
+              <Login
+                onSuccess={handleLoginSuccess}
+                onSwitchToRegister={() => setView('register')}
+              />
+            ) : (
+              <Register
+                onSuccess={handleRegisterSuccess}
+                onSwitchToLogin={() => setView('login')}
+              />
+            )}
           </div>
-          
-          {view === 'login' || view === 'home' ? (
-            <Login
-              onSuccess={handleLoginSuccess}
-              onSwitchToRegister={() => setView('register')}
-            />
-          ) : (
-            <Register
-              onSuccess={handleRegisterSuccess}
-              onSwitchToLogin={() => setView('login')}
-            />
-          )}
         </div>
+        <Footer />
       </div>
     );
   }
@@ -113,56 +116,13 @@ function App() {
   // Main app - shown when logged in
   return (
     <div style={styles.appContainer}>
-      <header style={styles.mainHeader} className="main-header">
-        <div style={styles.headerLeft} className="header-left">
-          <span style={styles.headerLogo} className="header-logo">🍽️</span>
-          <span style={styles.headerTitle} className="header-title">Bitezon</span>
-        </div>
-        
-        <nav style={styles.mainNav} className="main-nav">
-          <button 
-            style={{...styles.navButton, ...(view === 'home' ? styles.navActive : {})}}
-            className="nav-button"
-            onClick={() => setView('home')}
-          >
-            🏠 Home
-          </button>
-          <button 
-            style={{...styles.navButton, ...(view === 'compare' ? styles.navActive : {})}}
-            className="nav-button"
-            onClick={() => setView('compare')}
-          >
-            ⚖️ Compare
-          </button>
-          <button 
-            style={{...styles.navButton, ...(view === 'cart' || view === 'checkout' ? styles.navActive : {}), position: 'relative'}}
-            className="nav-button"
-            onClick={() => setView('cart')}
-          >
-            🛒 Cart
-            {cartCount > 0 && <span style={styles.badge}>{cartCount}</span>}
-          </button>
-          <button 
-            style={{...styles.navButton, ...(view === 'orders' ? styles.navActive : {})}}
-            className="nav-button"
-            onClick={() => setView('orders')}
-          >
-            📋 Orders
-          </button>
-          <button 
-            style={{...styles.navButton, ...(view === 'profile' ? styles.navActive : {})}}
-            className="nav-button"
-            onClick={() => setView('profile')}
-          >
-            👤 Profile
-          </button>
-        </nav>
-
-        <div style={styles.headerRight} className="header-right">
-          <span style={styles.welcome} className="welcome">Hi, {user?.name || 'User'}</span>
-          <button style={styles.logoutBtn} className="logout-btn" onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
+      <Header 
+        view={view} 
+        user={user} 
+        cartCount={cartCount}
+        onNavigate={setView}
+        onLogout={handleLogout}
+      />
 
       <main style={styles.main}>
         {view === 'home' && (
@@ -183,21 +143,27 @@ function App() {
             onComplete={handleCheckoutComplete}
           />
         )}
-        {view === 'orders' && <OrderHistory />}
+        {view === 'orders' && <OrderHistory user={user} />}
         {view === 'profile' && <Profile user={user} token={token} onLogout={handleLogout} />}
       </main>
+      <Footer />
     </div>
   );
 }
 
 const styles = {
+  authPageWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh'
+  },
   authPage: {
-    minHeight: '100vh',
+    flex: 1,
     width: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: '#f5f5f5',
     padding: '20px'
   },
   authContainer: {
@@ -217,7 +183,7 @@ const styles = {
     fontSize: '42px',
     fontWeight: '700',
     margin: '0 0 10px 0',
-    color: '#fff',
+    color: 'rgb(239, 79, 95)',
     textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
   },
   tagline: {
@@ -226,88 +192,13 @@ const styles = {
     margin: 0
   },
   appContainer: {
+    display: 'flex',
+    flexDirection: 'column',
     minHeight: '100vh',
     backgroundColor: '#f8f9fa'
   },
-  mainHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '12px 24px',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100
-  },
-  headerLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px'
-  },
-  headerLogo: {
-    fontSize: '28px'
-  },
-  headerTitle: {
-    fontSize: '22px',
-    fontWeight: '700',
-    background: 'linear-gradient(135deg, #fc8019, #e23744)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
-  },
-  mainNav: {
-    display: 'flex',
-    gap: '8px'
-  },
-  navButton: {
-    padding: '12px 20px',
-    border: 'none',
-    borderRadius: '8px',
-    backgroundColor: 'transparent',
-    fontSize: '16px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    color: '#555',
-    transition: 'all 0.2s'
-  },
-  navActive: {
-    backgroundColor: '#e23744',
-    color: '#fff'
-  },
-  badge: {
-    position: 'absolute',
-    top: '-5px',
-    right: '-5px',
-    background: '#e23744',
-    color: 'white',
-    borderRadius: '50%',
-    width: '18px',
-    height: '18px',
-    fontSize: '11px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 'bold'
-  },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px'
-  },
-  welcome: {
-    fontSize: '16px',
-    color: '#333',
-    fontWeight: '500'
-  },
-  logoutBtn: {
-    padding: '10px 18px',
-    backgroundColor: '#f5f5f5',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    fontSize: '15px',
-    cursor: 'pointer'
-  },
   main: {
+    flex: 1,
     minHeight: 'calc(100vh - 60px)'
   }
 };

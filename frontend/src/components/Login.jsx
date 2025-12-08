@@ -27,7 +27,7 @@ function Login({ onSuccess, onSwitchToRegister }) {
       <div className="auth-left">
         <div className="brand">
           <h1>BITEZON</h1>
-          <p>Welcome back — sign in to continue</p>
+          <p>Welcome back — Compare food prices across Swiggy & Zomato and sign in to continue</p>
         </div>
       </div>
 
