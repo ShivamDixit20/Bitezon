@@ -83,11 +83,21 @@ const Cart = ({ onCheckout }) => {
       const platformCart = cart?.[platform];
       const totals = cart?.totals?.[platform];
       
+      const userStr = localStorage.getItem('user');
+      const userData = userStr ? JSON.parse(userStr) : null;
+      const userId = userData?._id || userData?.id;
+      
+      if (!userId) {
+        console.error('User ID not found');
+        return false;
+      }
+      
       if (!platformCart || !platformCart.items || platformCart.items.length === 0) {
         return false;
       }
 
       const orderData = {
+        userId,
         platform,
         restaurantId: platformCart.restaurantId,
         restaurantName: platformCart.restaurantName,
