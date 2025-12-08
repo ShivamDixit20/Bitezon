@@ -35,6 +35,15 @@ const Checkout = ({ platform, onBack, onComplete }) => {
       const platformCart = cart?.[platform];
       const totals = cart?.totals?.[platform];
       
+      const userStr = localStorage.getItem('user');
+      const userData = userStr ? JSON.parse(userStr) : null;
+      const userId = userData?._id || userData?.id;
+      
+      if (!userId) {
+        console.error('User ID not found - cannot save order');
+        return false;
+      }
+      
       console.log('Cart data:', cart);
       console.log('Platform cart:', platformCart);
       console.log('Totals:', totals);
@@ -45,6 +54,7 @@ const Checkout = ({ platform, onBack, onComplete }) => {
       }
 
       const orderData = {
+        userId,
         platform,
         restaurantId: platformCart.restaurantId,
         restaurantName: platformCart.restaurantName,
@@ -67,9 +77,13 @@ const Checkout = ({ platform, onBack, onComplete }) => {
 
       console.log('Saving order data:', JSON.stringify(orderData, null, 2));
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(orderData)
       });
       

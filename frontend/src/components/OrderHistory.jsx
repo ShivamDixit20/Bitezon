@@ -17,20 +17,38 @@ const OrderHistory = ({ user }) => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const url = filter === 'all' 
-        ? `${API_BASE}/orders` 
-        : `${API_BASE}/orders?platform=${filter}`;
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      const userData = userStr ? JSON.parse(userStr) : null;
       
-      const response = await fetch(url);
+      if (!userData?._id && !userData?.id) {
+        setError('User information not found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      const userId = userData._id || userData.id;
+      const url = filter === 'all' 
+        ? `${API_BASE}/orders?userId=${userId}` 
+        : `${API_BASE}/orders?userId=${userId}&platform=${filter}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       const data = await response.json();
       
       if (data.success) {
         setOrders(data.orders || []);
+        setError('');
       } else {
         setError(data.message || 'Failed to fetch orders');
       }
     } catch (err) {
       setError('Failed to fetch order history');
+      console.error('Error fetching orders:', err);
     } finally {
       setLoading(false);
     }
@@ -58,18 +76,19 @@ const OrderHistory = ({ user }) => {
     }
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE}/orders/${orderId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setOrders(orders.filter(order => order._id !== orderId));
+        setOrders(orders.filter(order => order.orderId !== orderId));
         setExpandedOrderId(null);
       } else {
         setError(data.message || 'Failed to delete order');
