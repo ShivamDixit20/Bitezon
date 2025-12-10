@@ -1,25 +1,34 @@
 // Cart Controller - Manages dual-platform carts (Swiggy & Zomato)
 
-// In-memory cart storage (in production, use database or session)
-const carts = {};
+const Cart = require('../models/Cart');
 
-// Get or create user cart
-const getUserCart = (userId = 'default') => {
-  if (!carts[userId]) {
-    carts[userId] = {
-      swiggy: {
-        items: [],
-        restaurantId: null,
-        restaurantName: null
-      },
-      zomato: {
-        items: [],
-        restaurantId: null,
-        restaurantName: null
-      }
-    };
+// Get or create user cart from MongoDB
+const getUserCart = async (userId = 'default') => {
+  try {
+    let cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
+      cart = new Cart({
+        userId,
+        swiggy: {
+          items: [],
+          restaurantId: null,
+          restaurantName: null
+        },
+        zomato: {
+          items: [],
+          restaurantId: null,
+          restaurantName: null
+        }
+      });
+      await cart.save();
+    }
+    
+    return cart;
+  } catch (error) {
+    console.error('Error getting user cart:', error);
+    throw error;
   }
-  return carts[userId];
 };
 
 // Calculate cart totals
@@ -50,7 +59,7 @@ const calculateCartTotals = (cart) => {
 };
 
 // Add item to cart
-const addToCart = (req, res) => {
+const addToCart = async (req, res) => {
   try {
     const { 
       platform, 
@@ -79,7 +88,7 @@ const addToCart = (req, res) => {
     }
     
     const userId = req.body.userId || 'default';
-    const cart = getUserCart(userId);
+    const cart = await getUserCart(userId);
     const platformCart = cart[platform];
     
     // Check if adding from different restaurant
@@ -114,17 +123,20 @@ const addToCart = (req, res) => {
       });
     }
     
+    await cart.save();
+    
     const totals = calculateCartTotals(cart);
     
     res.json({
       success: true,
       message: `Added ${itemName} to ${platform} cart`,
       cart: {
-        ...cart,
+        ...cart.toObject(),
         totals
       }
     });
   } catch (error) {
+    console.error('Error adding to cart:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to add item to cart',
@@ -134,7 +146,7 @@ const addToCart = (req, res) => {
 };
 
 // Remove item from cart
-const removeFromCart = (req, res) => {
+const removeFromCart = async (req, res) => {
   try {
     const { platform, itemId, removeAll = false } = req.body;
     const userId = req.body.userId || 'default';
@@ -146,7 +158,7 @@ const removeFromCart = (req, res) => {
       });
     }
     
-    const cart = getUserCart(userId);
+    const cart = await getUserCart(userId);
     const platformCart = cart[platform];
     
     const itemIndex = platformCart.items.findIndex(item => item.itemId === itemId);
@@ -170,17 +182,20 @@ const removeFromCart = (req, res) => {
       platformCart.restaurantName = null;
     }
     
+    await cart.save();
+    
     const totals = calculateCartTotals(cart);
     
     res.json({
       success: true,
       message: 'Item removed from cart',
       cart: {
-        ...cart,
+        ...cart.toObject(),
         totals
       }
     });
   } catch (error) {
+    console.error('Error removing from cart:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to remove item from cart',
@@ -190,20 +205,21 @@ const removeFromCart = (req, res) => {
 };
 
 // Get cart
-const getCart = (req, res) => {
+const getCart = async (req, res) => {
   try {
     const userId = req.query.userId || 'default';
-    const cart = getUserCart(userId);
+    const cart = await getUserCart(userId);
     const totals = calculateCartTotals(cart);
     
     res.json({
       success: true,
       cart: {
-        ...cart,
+        ...cart.toObject(),
         totals
       }
     });
   } catch (error) {
+    console.error('Error getting cart:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get cart',
@@ -213,12 +229,12 @@ const getCart = (req, res) => {
 };
 
 // Clear cart (one platform or both)
-const clearCart = (req, res) => {
+const clearCart = async (req, res) => {
   try {
     const { platform } = req.body; // 'swiggy', 'zomato', or 'all'
     const userId = req.body.userId || 'default';
     
-    const cart = getUserCart(userId);
+    const cart = await getUserCart(userId);
     
     if (platform === 'all' || !platform) {
       cart.swiggy = { items: [], restaurantId: null, restaurantName: null };
@@ -232,17 +248,20 @@ const clearCart = (req, res) => {
       });
     }
     
+    await cart.save();
+    
     const totals = calculateCartTotals(cart);
     
     res.json({
       success: true,
       message: `${platform || 'All'} cart(s) cleared`,
       cart: {
-        ...cart,
+        ...cart.toObject(),
         totals
       }
     });
   } catch (error) {
+    console.error('Error clearing cart:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to clear cart',
@@ -263,7 +282,7 @@ const checkout = async (req, res) => {
       });
     }
     
-    const cart = getUserCart(userId);
+    const cart = await getUserCart(userId);
     const platformCart = cart[platform];
     
     if (platformCart.items.length === 0) {
@@ -364,7 +383,7 @@ const checkout = async (req, res) => {
 };
 
 // Update item quantity
-const updateQuantity = (req, res) => {
+const updateQuantity = async (req, res) => {
   try {
     const { platform, itemId, quantity } = req.body;
     const userId = req.body.userId || 'default';
@@ -383,7 +402,7 @@ const updateQuantity = (req, res) => {
       });
     }
     
-    const cart = getUserCart(userId);
+    const cart = await getUserCart(userId);
     const platformCart = cart[platform];
     
     const item = platformCart.items.find(item => item.itemId === itemId);
@@ -408,17 +427,20 @@ const updateQuantity = (req, res) => {
       item.quantity = quantity;
     }
     
+    await cart.save();
+    
     const totals = calculateCartTotals(cart);
     
     res.json({
       success: true,
       message: 'Quantity updated',
       cart: {
-        ...cart,
+        ...cart.toObject(),
         totals
       }
     });
   } catch (error) {
+    console.error('Error updating quantity:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update quantity',
