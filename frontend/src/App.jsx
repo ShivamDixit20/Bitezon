@@ -126,15 +126,7 @@ function App() {
       />
 
       <main style={styles.main}>
-        {view === 'home' && (
-          <Home 
-            isLoggedIn={true}
-            user={user}
-            onLogin={() => {}}
-            onSignup={() => {}}
-            onLogout={handleLogout}
-          />
-        )}
+        {view === 'home' && <Home user={user} />}
         {view === 'compare' && <CompareDeals onCartUpdate={handleCartUpdate} />}
         {view === 'cart' && <Cart onCheckout={(data) => handleCheckout(data.platform)} />}
         {view === 'checkout' && checkoutPlatform && (

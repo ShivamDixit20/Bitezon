@@ -3,7 +3,7 @@ import getDishImage from '../utils/getDishImage';
 
 const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`;
 
-const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
+const Home = ({ user }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,16 +36,29 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
+      setError('');
+      
+      console.log('Fetching restaurants from:', API_BASE);
+      
       const [swiggyRes, zomatoRes] = await Promise.all([
         fetch(`${API_BASE}/swiggy/restaurants`),
         fetch(`${API_BASE}/zomato/restaurants`)
       ]);
       
+      console.log('Swiggy response status:', swiggyRes.status);
+      console.log('Zomato response status:', zomatoRes.status);
+      
       const swiggyData = await swiggyRes.json();
       const zomatoData = await zomatoRes.json();
       
+      console.log('Swiggy data:', swiggyData);
+      console.log('Zomato data:', zomatoData);
+      
       const swiggyRestaurants = swiggyData.success ? swiggyData.data : [];
       const zomatoRestaurants = zomatoData.success ? zomatoData.data : [];
+      
+      console.log('Swiggy restaurants count:', swiggyRestaurants.length);
+      console.log('Zomato restaurants count:', zomatoRestaurants.length);
       
       const merged = [];
       const seen = new Set();
@@ -82,9 +95,10 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
       });
       
       setRestaurants(merged);
+      console.log('Total merged restaurants:', merged.length);
     } catch (err) {
-      setError('Failed to fetch restaurants');
-      console.error(err);
+      console.error('Error fetching restaurants:', err);
+      setError('Failed to fetch restaurants. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -339,7 +353,10 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
                       </div>
                       <img src={getDishImage(restaurant.cuisines?.[0] || restaurant.name)}
                         alt={restaurant.name} style={styles.cardImage} 
-                        onError={(e) => { e.target.onerror = null; e.target.src = 'http://localhost:3000/images/pizza.png'; }} />
+                        onError={(e) => { 
+                          e.target.onerror = null; 
+                          e.target.src = 'https://via.placeholder.com/100x80?text=Food'; 
+                        }} />
                     </div>
 
                     <div style={styles.cardFooter}>
@@ -408,7 +425,10 @@ const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
                           src={getDishImage(item.name)} 
                           alt={item.name} 
                           style={styles.menuItemImage}
-                          onError={(e) => { e.target.onerror = null; e.target.src = 'http://localhost:3000/images/pizza.png'; }}
+                          onError={(e) => { 
+                            e.target.onerror = null; 
+                            e.target.src = 'https://via.placeholder.com/120x100?text=Food'; 
+                          }}
                         />
                         <div style={styles.menuPrices}>
                           <div style={styles.menuPriceRow}>

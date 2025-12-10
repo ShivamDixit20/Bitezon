@@ -13,10 +13,11 @@
  *   - 'Masala Dosa' → dosa.png
  */
 
-const API_BASE = 'http://localhost:3000';
+// Use environment variable for API base URL, fallback for images only
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Default fallback image
-const DEFAULT_IMAGE = `${API_BASE}/images/pizza.png`;
+// Default fallback image (use placeholder if backend images not available)
+const DEFAULT_IMAGE = 'https://via.placeholder.com/100x80?text=Food';
 
 // Available images in backend/public/images
 const AVAILABLE_IMAGES = ['biryani', 'burger', 'desert', 'dosa', 'pasta', 'pizza', 'rolls', 'salad', 'sushi', 'tacos'];
