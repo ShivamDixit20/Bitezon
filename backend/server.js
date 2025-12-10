@@ -162,12 +162,15 @@ app.use((req, res) => {
   });
 });
 
-// Start server
+// Start server (only in development)
 const PORT = config.PORT;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${config.NODE_ENV}`);
-  console.log(`JWT expiry: ${config.JWT_EXPIRY}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${config.NODE_ENV}`);
+    console.log(`JWT expiry: ${config.JWT_EXPIRY}`);
+  });
+}
 
-
+// Export for Vercel
+module.exports = app;
