@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
-const API_BASE = 'http://localhost:3000/api/compare';
-const CART_API = 'http://localhost:3000/api/cart';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`;
+const API_BASE = `${API_URL}/compare`;
+const CART_API = `${API_URL}/cart`;
 
 function CompareDeals({ onCartUpdate }) {
   const [restaurantComparison, setRestaurantComparison] = useState(null);

@@ -13,6 +13,7 @@ module.exports = {
   
   // Server Configuration
   PORT: process.env.PORT || 3000,
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // MongoDB Configuration
   MONGO_URI: process.env.MONGO_URI,

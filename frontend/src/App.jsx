@@ -10,6 +10,8 @@ import Checkout from './components/Checkout';
 import OrderHistory from './components/OrderHistory';
 import Footer from './components/Footer';
 
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`;
+
 function App() {
   const [view, setView] = useState('login');
   const [token, setToken] = useState(null);
@@ -32,7 +34,7 @@ function App() {
 
   const fetchCartCount = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/cart');
+      const response = await fetch(`${API_BASE}/cart`);
       const data = await response.json();
       if (data.success && data.cart.totals) {
         const total = data.cart.totals.swiggy.totalItems + data.cart.totals.zomato.totalItems;
@@ -108,7 +110,6 @@ function App() {
             )}
           </div>
         </div>
-        <Footer />
       </div>
     );
   }

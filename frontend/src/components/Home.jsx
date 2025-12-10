@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import getDishImage from '../utils/getDishImage';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`;
 
 const Home = ({ isLoggedIn, user, onLogin, onSignup, onLogout }) => {
   const [restaurants, setRestaurants] = useState([]);
